@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YT Thumb Grabber - Download YouTube Thumbnails in 4K/HD</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Header with Language Selector -->
+    <header>
+        <div class="container">
+            <div class="logo">
+                <h1>YT Thumb Grabber</h1>
+                <p>Download high-quality YouTube thumbnails instantly</p>
+            </div>
+            <div class="header-controls">
+                <div class="language-selector">
+                    <select id="language-select">
+                        <option value="en">English</option>
+                        <option value="hi">हिंदी</option>
+                        <option value="ur">اردو</option>
+                        <option value="es">Español</option>
+                        <option value="fil">Filipino</option>
+                        <option value="id">Bahasa Indonesia</option>
+                        <option value="pt">Português</option>
+                    </select>
+                </div>
+                <button id="theme-toggle" aria-label="Toggle dark mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Download Section -->
+        <section class="download-section">
+            <h2 class="section-title">Download YouTube Thumbnails</h2>
+            <div class="input-group">
+                <input type="text" id="video-url" placeholder="Paste YouTube video URL here...">
+                <button id="fetch-btn">Get Thumbnails</button>
+            </div>
+            
+            <div class="quality-options hidden" id="quality-options">
+                <h3>Available Thumbnail Qualities</h3>
+                <div class="thumbnails-grid">
+                    <!-- Thumbnails will be inserted here by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Editor Section -->
+        <section class="editor-section hidden" id="editor-section">
+            <h2 class="section-title">Edit Thumbnail</h2>
+            <div class="editor-container">
+                <div class="editor-toolbar">
+                    <button class="tool-btn" data-tool="text"><i class="fas fa-font"></i> Text</button>
+                    <button class="tool-btn" data-tool="crop"><i class="fas fa-crop"></i> Crop</button>
+                    <button class="tool-btn" data-tool="filter"><i class="fas fa-sliders-h"></i> Filters</button>
+                    <button class="tool-btn" data-tool="sticker"><i class="fas fa-sticky-note"></i> Stickers</button>
+                    <button class="tool-btn" data-tool="draw"><i class="fas fa-pencil-alt"></i> Draw</button>
+                    <button class="tool-btn" id="download-edited"><i class="fas fa-download"></i> Download</button>
+                </div>
+                <div class="editor-canvas-container">
+                    <canvas id="editor-canvas"></canvas>
+                </div>
+                <div class="editor-sidebar hidden" id="editor-sidebar">
+                    <!-- Tool options will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-section">
+            <h2 class="section-title">Supported Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-image"></i>
+                    <h3>4K Quality</h3>
+                    <p>Download thumbnails in maximum 4K resolution (3840x2160)</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-bolt"></i>
+                    <h3>Instant Download</h3>
+                    <p>One-click download without any waiting time</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-edit"></i>
+                    <h3>Built-in Editor</h3>
+                    <p>Edit thumbnails directly on our platform before downloading</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-language"></i>
+                    <h3>Multi-language</h3>
+                    <p>Supports 7 international languages</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>Mobile Friendly</h3>
+                    <p>Works perfectly on all devices</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-lock"></i>
+                    <h3>Privacy Focused</h3>
+                    <p>No data collection, no registration required</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="faq-section">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            <div class="faq-container">
+                <div class="faq-item">
+                    <button class="faq-question">How do I download YouTube thumbnails?<i class="fas fa-chevron-down"></i></button>
+                    <div class="faq-answer">
+                        <p>Simply paste the YouTube video URL in the input field above and click "Get Thumbnails". Then select your preferred quality and click the download button.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">What thumbnail qualities are available?<i class="fas fa-chevron-down"></i></button>
+                    <div class="faq-answer">
+                        <p>We support multiple resolutions including maxresdefault (4K), hqdefault (HD), mqdefault (medium quality), and sddefault (standard definition).</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Can I edit the thumbnails before downloading?<i class="fas fa-chevron-down"></i></button>
+                    <div class="faq-answer">
+                        <p>Yes! After selecting a thumbnail, you can use our built-in editor to add text, apply filters, crop, or make other adjustments before downloading.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Is this service free to use?<i class="fas fa-chevron-down"></i></button>
+                    <div class="faq-answer">
+                        <p>Absolutely! YT Thumb Grabber is completely free with no hidden charges or premium tiers.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Do you store my downloaded thumbnails?<i class="fas fa-chevron-down"></i></button>
+                    <div class="faq-answer">
+                        <p>No, we don't store any of your downloaded or edited thumbnails. All processing happens in your browser.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Can I use this on mobile devices?<i class="fas fa-chevron-down"></i></button>
+                    <div class="faq-answer">
+                        <p>Yes, our website is fully responsive and works perfectly on smartphones, tablets, and desktop computers.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>YT Thumb Grabber</h3>
+                    <p>The easiest way to download and edit YouTube thumbnails in high quality.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#features-section">Features</a></li>
+                        <li><a href="#faq-section">FAQ</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Support</h3>
+                    <ul>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Report Issue</a></li>
+                        <li><a href="#">Feedback</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 YT Thumb Grabber. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="editor.js"></script>
+    <script src="language.js"></script>
+</body>
+</html>
