@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YT Thumb Grabber</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- Use a minified Tailwind CSS with only required classes -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" media="print" onload="this.media='all'">
+    <!-- Defer non-critical scripts -->
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
         body {
             background: linear-gradient(135deg, #6B7280, #3B82F6, #8B5CF6);
@@ -21,14 +23,19 @@
         }
         .thumbnail-preview img {
             transition: transform 0.3s ease;
+            loading: lazy;
         }
         .thumbnail-preview img:hover {
             transform: scale(1.05);
         }
-        .language-selector {
+        .language-selector, .quality-selector {
             transition: all 0.3s ease;
+            background-color: #1F2937;
+            color: #ffffff;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
         }
-        .language-selector:hover {
+        .language-selector:hover, .quality-selector:hover {
             background-color: #3B82F6;
         }
         .feature-card, .faq-item {
@@ -41,6 +48,7 @@
         }
         .download-button {
             transition: all 0.3s ease;
+            font-weight: bold;
         }
         .download-button:hover {
             background-color: #10B981;
@@ -55,9 +63,6 @@
         .bulk-note {
             color: red;
             font-weight: bold;
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 8px;
-            border-radius: 4px;
             margin-top: 8px;
         }
     </style>
@@ -69,14 +74,14 @@
             <p class="text-sm" data-i18n="header_subtitle">Download high-quality YouTube thumbnails instantly</p>
         </div>
         <div>
-            <select id="language-selector" class="language-selector bg-gray-800 text-white p-2 rounded">
+            <select id="language-selector" class="language-selector">
                 <option value="en">English</option>
                 <option value="hi">हिंदी (Hindi)</option>
                 <option value="ur">اردو (Urdu/Pakistani)</option>
-                <option value="es">Español (Spanish)</option>
+                <option value="es">Español (Mexican)</option>
                 <option value="fil">Filipino</option>
                 <option value="id">Bahasa Indonesia (Indonesian)</option>
-                <option value="pt">Português (Portuguese)</option>
+                <option value="pt">Português (Brazilian)</option>
                 <option value="fr">Français (French)</option>
                 <option value="de">Deutsch (German)</option>
                 <option value="ru">Русский (Russian)</option>
@@ -92,7 +97,7 @@
             <div class="flex flex-col items-center">
                 <textarea id="youtube-urls" class="w-full max-w-md p-3 rounded-t text-black" rows="4" placeholder="Paste YouTube URLs here (one per line for bulk download)" data-i18n-placeholder="urls_placeholder"></textarea>
                 <div class="flex w-full max-w-md">
-                    <select id="bulk-quality" class="bg-gray-800 text-white p-3 rounded-l">
+                    <select id="bulk-quality" class="quality-selector rounded-l">
                         <option value="maxresdefault">4K (3840x2160)</option>
                         <option value="hqdefault">1080p (1920x1080)</option>
                         <option value="mqdefault">720p (1280x720)</option>
@@ -100,7 +105,7 @@
                     </select>
                     <button id="get-thumbnails" class="bg-blue-600 text-white p-3 flex-1 rounded-r download-button" data-i18n="get_thumbnails">Get Thumbnails</button>
                 </div>
-                <p class="bulk-note w-full max-w-md text-left" data-i18n="bulk_note">You can paste multiple YouTube links to download bulk thumbnails.</p>
+                <p class="bulk-note w-full max-w-md text-left" data-i18n="bulk_note">(You can paste multiple YouTube links to download bulk thumbnails.)</p>
             </div>
             <div id="thumbnail-previews" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
                 <!-- Thumbnails will be dynamically added here -->
@@ -229,691 +234,7 @@
     </footer>
 
     <script>
-        const translations = {
-            en: {
-                header_title: "YT Thumb Grabber",
-                header_subtitle: "Download high-quality YouTube thumbnails instantly",
-                download_title: "Download YouTube Thumbnails",
-                urls_placeholder: "Paste YouTube URLs here (one per line for bulk download)",
-                get_thumbnails: "Get Thumbnails",
-                bulk_note: "You can paste multiple YouTube links to download bulk thumbnails.",
-                features_title: "Supported Features",
-                feature_4k_title: "4K Quality",
-                feature_4k_desc: "Download thumbnails in maximum 4K resolution (3840x2160)",
-                feature_instant_title: "Instant Download",
-                feature_instant_desc: "One-click download without any waiting time",
-                feature_bulk_title: "Bulk Download",
-                feature_bulk_desc: "Download multiple thumbnails in a single ZIP file",
-                feature_multilang_title: "Multi-language",
-                feature_multilang_desc: "Supports 12 international languages",
-                feature_mobile_title: "Mobile Friendly",
-                feature_mobile_desc: "Works perfectly on all devices",
-                feature_privacy_title: "Privacy Focused",
-                feature_privacy_desc: "No data collection, no registration required",
-                faq_title: "Frequently Asked Questions",
-                faq_download_title: "How do I download YouTube thumbnails?",
-                faq_download_desc: "Simply paste the YouTube video URL(s) in the input field above and click 'Get Thumbnails'. Then select your preferred quality and click the download button. For multiple URLs, click a quality button to download all thumbnails as a ZIP file.",
-                faq_qualities_title: "What thumbnail qualities are available?",
-                faq_qualities_desc: "We support multiple resolutions including 4K (3840x2160), 1080p (1920x1080), 720p (1280x720), and 480p (854x480).",
-                faq_bulk_title: "How does bulk download work?",
-                faq_bulk_desc: "Enter multiple YouTube URLs (one per line) in the input field, click 'Get Thumbnails', select a quality from the dropdown, and click the download button for that quality to download all thumbnails in a single ZIP file.",
-                faq_free_title: "Is this service free to use?",
-                faq_free_desc: "Absolutely! YT Thumb Grabber is completely free with no hidden charges or premium tiers.",
-                faq_store_title: "Do you store my downloaded thumbnails?",
-                faq_store_desc: "No, we don't store any of your downloaded thumbnails. All processing happens in your browser.",
-                faq_mobile_title: "Can I use this on mobile devices?",
-                faq_mobile_desc: "Yes, our website is fully responsive and works perfectly on smartphones, tablets, and desktop computers.",
-                about_title: "About YT Thumb Grabber",
-                about_desc: "The easiest way to download YouTube thumbnails in high quality, including bulk download of multiple thumbnails in a single ZIP file.",
-                share_title: "Share",
-                quick_links_title: "Quick Links",
-                quick_link_home: "Home",
-                quick_link_features: "Features",
-                quick_link_faq: "FAQ",
-                quick_link_privacy: "Privacy Policy",
-                quick_link_terms: "Terms of Service",
-                support_title: "Support",
-                support_contact: "Contact Us",
-                support_report: "Report Issue",
-                support_feedback: "Feedback",
-                footer_copyright: "© 2023 YT Thumb Grabber. All rights reserved.",
-                reaction_title: "How was your experience?"
-            },
-            hi: {
-                header_title: "YT थंब ग्रैबर",
-                header_subtitle: "उच्च गुणवत्ता वाले YouTube थंबनेल तुरंत डाउनलोड करें",
-                download_title: "YouTube थंबनेल डाउनलोड करें",
-                urls_placeholder: "यहां YouTube URL चिपकाएं (बल्क डाउनलोड के लिए प्रति पंक्ति एक)",
-                get_thumbnails: "थंबनेल प्राप्त करें",
-                bulk_note: "आप बल्क थंबनेल डाउनलोड करने के लिए कई YouTube लिंक चिपका सकते हैं।",
-                features_title: "समर्थित विशेषताएं",
-                feature_4k_title: "4K गुणवत्ता",
-                feature_4k_desc: "अधिकतम 4K रिज़ॉल्यूशन (3840x2160) में थंबनेल डाउनलोड करें",
-                feature_instant_title: "तुरंत डाउनलोड",
-                feature_instant_desc: "बिना किसी प्रतीक्षा समय के एक-क्लिक डाउनलोड",
-                feature_bulk_title: "बल्क डाउनलोड",
-                feature_bulk_desc: "एक ही ZIP फ़ाइल में कई थंबनेल डाउनलोड करें",
-                feature_multilang_title: "बहु-भाषा",
-                feature_multilang_desc: "12 अंतरराष्ट्रीय भाषाओं का समर्थन करता है",
-                feature_mobile_title: "मोबाइल फ्रेंडली",
-                feature_mobile_desc: "सभी डिवाइस पर पूरी तरह से काम करता है",
-                feature_privacy_title: "गोपनीयता केंद्रित",
-                feature_privacy_desc: "कोई डेटा संग्रह नहीं, कोई पंजीकरण आवश्यक नहीं",
-                faq_title: "अक्सर पूछे जाने वाले प्रश्न",
-                faq_download_title: "मैं YouTube थंबनेल कैसे डाउनलोड करूं?",
-                faq_download_desc: "बस ऊपर दिए गए इनपुट फ़ील्ड में YouTube वीडियो URL(s) चिपकाएं और 'थंबनेल प्राप्त करें' पर क्लिक करें। फिर अपनी पसंदीदा गुणवत्ता चुनें और डाउनलोड बटन पर क्लिक करें। एकाधिक URL के लिए, सभी थंबनेल ZIP फ़ाइल के रूप में डाउनलोड करने के लिए गुणवत्ता बटन पर क्लिक करें।",
-                faq_qualities_title: "कौन सी थंबनेल गुणवत्ता उपलब्ध हैं?",
-                faq_qualities_desc: "हम कई रिज़ॉल्यूशन का समर्थन करते हैं, जिसमें 4K (3840x2160), 1080p (1920x1080), 720p (1280x720), और 480p (854x480) शामिल हैं।",
-                faq_bulk_title: "बल्क डाउनलोड कैसे काम करता है?",
-                faq_bulk_desc: "इनपुट फ़ील्ड में कई YouTube URL (प्रति पंक्ति एक) दर्ज करें, 'थंबनेल प्राप्त करें' पर क्लिक करें, ड्रॉपडाउन से एक गुणवत्ता चुनें, और उस गुणवत्ता के लिए डाउनलोड बटन पर क्लिक करें ताकि सभी थंबनेल एक ही ZIP फ़ाइल में डाउनलोड हो सकें।",
-                faq_free_title: "क्या यह सेवा मुफ्त है?",
-                faq_free_desc: "बिल्कुल! YT थंब ग्रैबर पूरी तरह से मुफ्त है, बिना किसी छिपे शुल्क या प्रीमियम स्तर के।",
-                faq_store_title: "क्या आप मेरे डाउनलोड किए गए थंबनेल स्टोर करते हैं?",
-                faq_store_desc: "नहीं, हम आपके डाउनलोड किए गए थंबनेल को स्टोर नहीं करते। सारा प्रसंस्करण आपके ब्राउज़र में होता है।",
-                faq_mobile_title: "क्या मैं इसे मोबाइल डिवाइस पर उपयोग कर सकता हूँ?",
-                faq_mobile_desc: "हाँ, हमारी वेबसाइट पूरी तरह से उत्तरदायी है और स्मार्टफोन, टैबलेट, और डेस्कटॉप कंप्यूटर पर पूरी तरह से काम करती है।",
-                about_title: "YT थंब ग्रैबर के बारे में",
-                about_desc: "उच्च गुणवत्ता में YouTube थंबनेल डाउनलोड करने का सबसे आसान तरीका, जिसमें एक ही ZIP फ़ाइल में कई थंबनेल का बल्क डाउनलोड भी शामिल है।",
-                share_title: "साझा करें",
-                quick_links_title: "त्वरित लिंक",
-                quick_link_home: "होम",
-                quick_link_features: "विशेषताएं",
-                quick_link_faq: "अक्सर पूछे जाने वाले प्रश्न",
-                quick_link_privacy: "गोपनीयता नीति",
-                quick_link_terms: "सेवा की शर्तें",
-                support_title: "समर्थन",
-                support_contact: "हमसे संपर्क करें",
-                support_report: "समस्या की रिपोर्ट करें",
-                support_feedback: "प्रतिक्रिया",
-                footer_copyright: "© 2023 YT थंब ग्रैबर। सभी अधिकार सुरक्षित।",
-                reaction_title: "आपका अनुभव कैसा रहा?"
-            },
-            ur: {
-                header_title: "YT تھمب گرابر",
-                header_subtitle: "اعلیٰ معیار کے یوٹیوب تھمب نیلز فوری طور پر ڈاؤن لوڈ کریں",
-                download_title: "یوٹیوب تھمب نیلز ڈاؤن لوڈ کریں",
-                urls_placeholder: "یہاں یوٹیوب یو آر ایل پیسٹ کریں (بلک ڈاؤن لوڈ کے لیے فی سطر ایک)",
-                get_thumbnails: "تھمب نیلز حاصل کریں",
-                bulk_note: "آپ بلک تھمب نیلز ڈاؤن لوڈ کرنے کے لیے متعدد یوٹیوب لنکس پیسٹ کر سکتے ہیں۔",
-                features_title: "سپورٹڈ فیچرز",
-                feature_4k_title: "4K معیار",
-                feature_4k_desc: "زیادہ سے زیادہ 4K ریزولوشن (3840x2160) میں تھمب نیلز ڈاؤن لوڈ کریں",
-                feature_instant_title: "فوری ڈاؤن لوڈ",
-                feature_instant_desc: "بغیر کسی انتظار کے ایک کلک ڈاؤن لوڈ",
-                feature_bulk_title: "بلک ڈاؤن لوڈ",
-                feature_bulk_desc: "ایک ہی ZIP فائل میں متعدد تھمب نیلز ڈاؤن لوڈ کریں",
-                feature_multilang_title: "کثیر لسانی",
-                feature_multilang_desc: "12 بین الاقوامی زبانوں کی حمایت کرتا ہے",
-                feature_mobile_title: "موبائل فرینڈلی",
-                feature_mobile_desc: "تمام آلات پر بہترین کام کرتا ہے",
-                feature_privacy_title: "رازداری پر توجہ",
-                feature_privacy_desc: "کوئی ڈیٹا جمع نہیں، کوئی رجسٹریشن درکار نہیں",
-                faq_title: "اکثر پوچھے جانے والے سوالات",
-                faq_download_title: "میں یوٹیوب تھمب نیلز کیسے ڈاؤن لوڈ کروں؟",
-                faq_download_desc: "بس اوپر دیے گئے ان پٹ فیلڈ میں یوٹیوب ویڈیو یو آر ایلز پیسٹ کریں اور 'تھمب نیلز حاصل کریں' پر کلک کریں۔ پھر اپنی پسندیدہ معیار منتخب کریں اور ڈاؤن لوڈ بٹن پر کلک کریں۔ متعدد یو آر ایلز کے لیے، تمام تھمب نیلز ZIP فائل کے طور پر ڈاؤن لوڈ کرنے کے لیے معیار کا بٹن کلک کریں۔",
-                faq_qualities_title: "کون سے تھمب نیل معیار دستیاب ہیں؟",
-                faq_qualities_desc: "ہم متعدد ریزولوشنز کی حمایت کرتے ہیں، بشمول 4K (3840x2160)، 1080p (1920x1080)، 720p (1280x720)، اور 480p (854x480)۔",
-                faq_bulk_title: "بلک ڈاؤن لوڈ کیسے کام کرتا ہے؟",
-                faq_bulk_desc: "ان پٹ فیلڈ میں متعدد یوٹیوب یو آر ایل (فی سطر ایک) درج کریں، 'تھمب نیلز حاصل کریں' پر کلک کریں، ڈراپ ڈاؤن سے ایک معیار منتخب کریں، اور اس معیار کے لیے ڈاؤن لوڈ بٹن پر کلک کریں تاکہ تمام تھمب نیلز ایک ہی ZIP فائل میں ڈاؤن لوڈ ہو سکیں۔",
-                faq_free_title: "کیا یہ سروس مفت ہے؟",
-                faq_free_desc: "بالکل! YT تھمب گرابر مکمل طور پر مفت ہے بغیر کسی خفیہ چارجز یا پریمیم درجوں کے۔",
-                faq_store_title: "کیا آپ میرے ڈاؤن لوڈ کردہ تھمب نیلز اسٹور کرتے ہیں؟",
-                faq_store_desc: "نہیں، ہم آپ کے ڈاؤن لوڈ کردہ تھمب نیلز کو اسٹور نہیں کرتے۔ تمام پروسیسنگ آپ کے براؤزر میں ہوتی ہے۔",
-                faq_mobile_title: "کیا میں اسے موبائل ڈیوائسز پر استعمال کر سکتا ہوں؟",
-                faq_mobile_desc: "ہاں، ہماری ویب سائٹ مکمل طور پر ریسپانسیو ہے اور اسمارٹ فونز، ٹیبلیٹس، اور ڈیسک ٹاپ کمپیوٹرز پر بہترین کام کرتی ہے۔",
-                about_title: "YT تھمب گرابر کے بارے میں",
-                about_desc: "اعلیٰ معیار میں یوٹیوب تھمب نیلز ڈاؤن لوڈ کرنے کا سب سے آسان طریقہ، بشمول ایک ہی ZIP فائل میں متعدد تھمب نیلز کا بلک ڈاؤن لوڈ۔",
-                share_title: "شئیر کریں",
-                quick_links_title: "فوری لنکس",
-                quick_link_home: "ہوم",
-                quick_link_features: "فیچرز",
-                quick_link_faq: "اکثر پوچھے جانے والے سوالات",
-                quick_link_privacy: "رازداری کی پالیسی",
-                quick_link_terms: "سروس کی شرائط",
-                support_title: "سپورٹ",
-                support_contact: "ہم سے رابطہ کریں",
-                support_report: "مسئلہ رپورٹ کریں",
-                support_feedback: "رائے",
-                footer_copyright: "© 2023 YT تھمب گرابر۔ تمام حقوق محفوظ ہیں۔",
-                reaction_title: "آپ کا تجربہ کیسا رہا؟"
-            },
-            es: {
-                header_title: "YT Thumb Grabber",
-                header_subtitle: "Descarga miniaturas de YouTube de alta calidad al instante",
-                download_title: "Descargar miniaturas de YouTube",
-                urls_placeholder: "Pega las URLs de YouTube aquí (una por línea para descarga masiva)",
-                get_thumbnails: "Obtener miniaturas",
-                bulk_note: "Puedes pegar múltiples enlaces de YouTube para descargar miniaturas en masa.",
-                features_title: "Características compatibles",
-                feature_4k_title: "Calidad 4K",
-                feature_4k_desc: "Descarga miniaturas en resolución máxima 4K (3840x2160)",
-                feature_instant_title: "Descarga instantánea",
-                feature_instant_desc: "Descarga con un solo clic sin tiempo de espera",
-                feature_bulk_title: "Descarga masiva",
-                feature_bulk_desc: "Descarga múltiples miniaturas en un solo archivo ZIP",
-                feature_multilang_title: "Multilenguaje",
-                feature_multilang_desc: "Soporta 12 idiomas internacionales",
-                feature_mobile_title: "Compatible con móviles",
-                feature_mobile_desc: "Funciona perfectamente en todos los dispositivos",
-                feature_privacy_title: "Enfocado en la privacidad",
-                feature_privacy_desc: "Sin recolección de datos, sin necesidad de registro",
-                faq_title: "Preguntas frecuentes",
-                faq_download_title: "¿Cómo descargo miniaturas de YouTube?",
-                faq_download_desc: "Simplemente pega la(s) URL(s) de video de YouTube en el campo de entrada arriba y haz clic en 'Obtener miniaturas'. Luego selecciona la calidad preferida y haz clic en el botón de descarga. Para múltiples URLs, haz clic en un botón de calidad para descargar todas las miniaturas como un archivo ZIP.",
-                faq_qualities_title: "¿Qué calidades de miniatura están disponibles?",
-                faq_qualities_desc: "Soportamos múltiples resoluciones incluyendo 4K (3840x2160), 1080p (1920x1080), 720p (1280x720) y 480p (854x480).",
-                faq_bulk_title: "¿Cómo funciona la descarga masiva?",
-                faq_bulk_desc: "Ingresa múltiples URLs de YouTube (una por línea) en el campo de entrada, haz clic en 'Obtener miniaturas', selecciona una calidad desde el desplegable, y haz clic en el botón de descarga para esa calidad para descargar todas las miniaturas en un solo archivo ZIP.",
-                faq_free_title: "¿Es gratis este servicio?",
-                faq_free_desc: "¡Absolutamente! YT Thumb Grabber es completamente gratis sin cargos ocultos ni niveles premium.",
-                faq_store_title: "¿Almacenan mis miniaturas descargadas?",
-                faq_store_desc: "No, no almacenamos ninguna de tus miniaturas descargadas. Todo el procesamiento ocurre en tu navegador.",
-                faq_mobile_title: "¿Puedo usar esto en dispositivos móviles?",
-                faq_mobile_desc: "Sí, nuestro sitio web es totalmente responsive y funciona perfectamente en smartphones, tabletas y computadoras de escritorio.",
-                about_title: "Acerca de YT Thumb Grabber",
-                about_desc: "La forma más fácil de descargar miniaturas de YouTube en alta calidad, incluyendo la descarga masiva de múltiples miniaturas en un solo archivo ZIP.",
-                share_title: "Compartir",
-                quick_links_title: "Enlaces rápidos",
-                quick_link_home: "Inicio",
-                quick_link_features: "Características",
-                quick_link_faq: "Preguntas frecuentes",
-                quick_link_privacy: "Política de privacidad",
-                quick_link_terms: "Términos de servicio",
-                support_title: "Soporte",
-                support_contact: "Contáctanos",
-                support_report: "Reportar problema",
-                support_feedback: "Comentarios",
-                footer_copyright: "© 2023 YT Thumb Grabber. Todos los derechos reservados.",
-                reaction_title: "¿Cómo fue tu experiencia?"
-            },
-            fil: {
-                header_title: "YT Thumb Grabber",
-                header_subtitle: "I-download ang mga high-quality na thumbnail ng YouTube nang instant",
-                download_title: "I-download ang mga Thumbnail ng YouTube",
-                urls_placeholder: "I-paste ang mga YouTube URL dito (isa bawat linya para sa bulk download)",
-                get_thumbnails: "Kumuha ng mga Thumbnail",
-                bulk_note: "Maaari kang mag-paste ng maraming YouTube link upang i-download ang mga thumbnail nang maramihan.",
-                features_title: "Mga Sinusuportahang Feature",
-                feature_4k_title: "4K na Kalidad",
-                feature_4k_desc: "I-download ang mga thumbnail sa maximum na 4K resolution (3840x2160)",
-                feature_instant_title: "Instant na Pag-download",
-                feature_instant_desc: "One-click na pag-download nang walang anumang oras ng paghihintay",
-                feature_bulk_title: "Bulk Download",
-                feature_bulk_desc: "I-download ang maraming thumbnail sa isang ZIP file",
-                feature_multilang_title: "Multi-language",
-                feature_multilang_desc: "Sumusuporta sa 12 internasyonal na wika",
-                feature_mobile_title: "Mobile Friendly",
-                feature_mobile_desc: "Gumagana nang perpekto sa lahat ng device",
-                feature_privacy_title: "Nakatuon sa Privacy",
-                feature_privacy_desc: "Walang koleksyon ng data, walang kinakailangang pagpaparehistro",
-                faq_title: "Mga Madalas Itanong",
-                faq_download_title: "Paano ko i-da-download ang mga thumbnail ng YouTube?",
-                faq_download_desc: "I-paste lamang ang (mga) YouTube video URL sa input field sa itaas at i-click ang 'Kumuha ng mga Thumbnail'. Pagkatapos ay piliin ang iyong gustong kalidad at i-click ang download button. Para sa maraming URL, i-click ang button ng kalidad upang i-download ang lahat ng thumbnail bilang ZIP file.",
-                faq_qualities_title: "Anong mga kalidad ng thumbnail ang available?",
-                faq_qualities_desc: "Sumusuporta kami ng maraming resolution kabilang ang 4K (3840x2160), 1080p (1920x1080), 720p (1280x720), at 480p (854x480).",
-                faq_bulk_title: "Paano gumagana ang bulk download?",
-                faq_bulk_desc: "Maglagay ng maraming YouTube URL (isa bawat linya) sa input field, i-click ang 'Kumuha ng mga Thumbnail', pumili ng kalidad mula sa dropdown, at i-click ang download button para sa kalidad na iyon upang i-download ang lahat ng thumbnail sa isang ZIP file.",
-                faq_free_title: "Libre ba ang serbisyong ito?",
-                faq_free_desc: "Talagang! Ang YT Thumb Grabber ay ganap na libre na walang mga nakatagong bayarin o premium tiers.",
-                faq_store_title: "Iniimbak ba ninyo ang aking na-download na mga thumbnail?",
-                faq_store_desc: "Hindi, hindi namin iniimbak ang anumang na-download na mga thumbnail. Lahat ng pagpoproseso ay nangyayari sa iyong browser.",
-                faq_mobile_title: "Maaari ko bang gamitin ito sa mga mobile device?",
-                faq_mobile_desc: "Oo, ang aming website ay ganap na responsive at gumagana nang perpekto sa mga smartphone, tablet, at desktop computer.",
-                about_title: "Tungkol sa YT Thumb Grabber",
-                about_desc: "Ang pinakamadaling paraan upang i-download ang mga thumbnail ng YouTube sa mataas na kalidad, kabilang ang bulk download ng maraming thumbnail sa isang ZIP file.",
-                share_title: "Ibahagi",
-                quick_links_title: "Mga Mabilisang Link",
-                quick_link_home: "Home",
-                quick_link_features: "Mga Feature",
-                quick_link_faq: "Mga FAQ",
-                quick_link_privacy: "Patakaran sa Privacy",
-                quick_link_terms: "Mga Tuntunin ng Serbisyo",
-                support_title: "Suporta",
-                support_contact: "Makipag-ugnayan sa Amin",
-                support_report: "Mag-ulat ng Isyu",
-                support_feedback: "Feedback",
-                footer_copyright: "© 2023 YT Thumb Grabber. Lahat ng karapatan ay nakalaan.",
-                reaction_title: "Kumusta ang iyong karanasan?"
-            },
-            id: {
-                header_title: "YT Thumb Grabber",
-                header_subtitle: "Unduh thumbnail YouTube berkualitas tinggi secara instan",
-                download_title: "Unduh Thumbnail YouTube",
-                urls_placeholder: "Tempel URL YouTube di sini (satu per baris untuk unduhan massal)",
-                get_thumbnails: "Dapatkan Thumbnail",
-                bulk_note: "Anda dapat menempelkan beberapa tautan YouTube untuk mengunduh thumbnail secara massal.",
-                features_title: "Fitur yang Didukung",
-                feature_4k_title: "Kualitas 4K",
-                feature_4k_desc: "Unduh thumbnail dalam resolusi maksimum 4K (3840x2160)",
-                feature_instant_title: "Unduhan Instan",
-                feature_instant_desc: "Unduhan sekali klik tanpa waktu tunggu",
-                feature_bulk_title: "Unduhan Massal",
-                feature_bulk_desc: "Unduh beberapa thumbnail dalam satu file ZIP",
-                feature_multilang_title: "Multi-bahasa",
-                feature_multilang_desc: "Mendukung 12 bahasa internasional",
-                feature_mobile_title: "Ramah Seluler",
-                feature_mobile_desc: "Berfungsi dengan sempurna di semua perangkat",
-                feature_privacy_title: "Fokus pada Privasi",
-                feature_privacy_desc: "Tidak ada pengumpulan data, tidak perlu registrasi",
-                faq_title: "Pertanyaan yang Sering Diajukan",
-                faq_download_title: "Bagaimana cara mengunduh thumbnail YouTube?",
-                faq_download_desc: "Cukup tempel URL(s) video YouTube di kolom input di atas dan klik 'Dapatkan Thumbnail'. Kemudian pilih kualitas yang diinginkan dan klik tombol unduh. Untuk beberapa URL, klik tombol kualitas untuk mengunduh semua thumbnail sebagai file ZIP.",
-                faq_qualities_title: "Kualitas thumbnail apa yang tersedia?",
-                faq_qualities_desc: "Kami mendukung beberapa resolusi termasuk 4K (3840x2160), 1080p (1920x1080), 720p (1280x720), dan 480p (854x480).",
-                faq_bulk_title: "Bagaimana cara kerja unduhan massal?",
-                faq_bulk_desc: "Masukkan beberapa URL YouTube (satu per baris) di kolom input, klik 'Dapatkan Thumbnail', pilih kualitas dari dropdown, dan klik tombol unduh untuk kualitas tersebut untuk mengunduh semua thumbnail dalam satu file ZIP.",
-                faq_free_title: "Apakah layanan ini gratis?",
-                faq_free_desc: "Tentu saja! YT Thumb Grabber sepenuhnya gratis tanpa biaya tersembunyi atau tingkatan premium.",
-                faq_store_title: "Apakah Anda menyimpan thumbnail yang saya unduh?",
-                faq_store_desc: "Tidak, kami tidak menyimpan thumbnail yang Anda unduh. Semua pemrosesan terjadi di browser Anda.",
-                faq_mobile_title: "Apakah saya bisa menggunakan ini di perangkat seluler?",
-                faq_mobile_desc: "Ya, situs web kami sepenuhnya responsif dan berfungsi dengan sempurna di smartphone, tablet, dan komputer desktop.",
-                about_title: "Tentang YT Thumb Grabber",
-                about_desc: "Cara termudah untuk mengunduh thumbnail YouTube dalam kualitas tinggi, termasuk unduhan massal beberapa thumbnail dalam satu file ZIP.",
-                share_title: "Bagikan",
-                quick_links_title: "Tautan Cepat",
-                quick_link_home: "Beranda",
-                quick_link_features: "Fitur",
-                quick_link_faq: "FAQ",
-                quick_link_privacy: "Kebijakan Privasi",
-                quick_link_terms: "Syarat Layanan",
-                support_title: "Dukungan",
-                support_contact: "Hubungi Kami",
-                support_report: "Laporkan Masalah",
-                support_feedback: "Umpan Balik",
-                footer_copyright: "© 2023 YT Thumb Grabber. Semua hak dilindungi.",
-                reaction_title: "Bagaimana pengalaman Anda?"
-            },
-            pt: {
-                header_title: "YT Thumb Grabber",
-                header_subtitle: "Baixe miniaturas do YouTube de alta qualidade instantaneamente",
-                download_title: "Baixar Miniaturas do YouTube",
-                urls_placeholder: "Cole as URLs do YouTube aqui (uma por linha para download em massa)",
-                get_thumbnails: "Obter Miniaturas",
-                bulk_note: "Você pode colar vários links do YouTube para baixar miniaturas em massa.",
-                features_title: "Recursos Suportados",
-                feature_4k_title: "Qualidade 4K",
-                feature_4k_desc: "Baixe miniaturas na resolução máxima de 4K (3840x2160)",
-                feature_instant_title: "Download Instantâneo",
-                feature_instant_desc: "Download com um clique sem tempo de espera",
-                feature_bulk_title: "Download em Massa",
-                feature_bulk_desc: "Baixe várias miniaturas em um único arquivo ZIP",
-                feature_multilang_title: "Multilíngue",
-                feature_multilang_desc: "Suporta 12 idiomas internacionais",
-                feature_mobile_title: "Compatível com Celulares",
-                feature_mobile_desc: "Funciona perfeitamente em todos os dispositivos",
-                feature_privacy_title: "Focado em Privacidade",
-                feature_privacy_desc: "Sem coleta de dados, sem necessidade de registro",
-                faq_title: "Perguntas Frequentes",
-                faq_download_title: "Como faço para baixar miniaturas do YouTube?",
-                faq_download_desc: "Basta colar a(s) URL(s) do vídeo do YouTube no campo de entrada acima e clicar em 'Obter Miniaturas'. Em seguida, selecione a qualidade desejada e clique no botão de download. Para várias URLs, clique em um botão de qualidade para baixar todas as miniaturas como um arquivo ZIP.",
-                faq_qualities_title: "Quais qualidades de miniatura estão disponíveis?",
-                faq_qualities_desc: "Suportamos várias resoluções, incluindo 4K (3840x2160), 1080p (1920x1080), 720p (1280x720) e 480p (854x480).",
-                faq_bulk_title: "Como funciona o download em massa?",
-                faq_bulk_desc: "Insira várias URLs do YouTube (uma por linha) no campo de entrada, clique em 'Obter Miniaturas', selecione uma qualidade no menu suspenso e clique no botão de download para essa qualidade para baixar todas as miniaturas em um único arquivo ZIP.",
-                faq_free_title: "Este serviço é gratuito?",
-                faq_free_desc: "Absolutamente! O YT Thumb Grabber é totalmente gratuito, sem taxas ocultas ou níveis premium.",
-                faq_store_title: "Vocês armazenam as miniaturas que eu baixo?",
-                faq_store_desc: "Não, não armazenamos nenhuma das suas miniaturas baixadas. Todo o processamento acontece no seu navegador.",
-                faq_mobile_title: "Posso usar isso em dispositivos móveis?",
-                faq_mobile_desc: "Sim, nosso site é totalmente responsivo e funciona perfeitamente em smartphones, tablets e computadores desktop.",
-                about_title: "Sobre o YT Thumb Grabber",
-                about_desc: "A maneira mais fácil de baixar miniaturas do YouTube em alta qualidade, incluindo o download em massa de várias miniaturas em um único arquivo ZIP.",
-                share_title: "Compartilhar",
-                quick_links_title: "Links Rápidos",
-                quick_link_home: "Início",
-                quick_link_features: "Recursos",
-                quick_link_faq: "FAQ",
-                quick_link_privacy: "Política de Privacidade",
-                quick_link_terms: "Termos de Serviço",
-                support_title: "Suporte",
-                support_contact: "Contate-nos",
-                support_report: "Relatar Problema",
-                support_feedback: "Feedback",
-                footer_copyright: "© 2023 YT Thumb Grabber. Todos os direitos reservados.",
-                reaction_title: "Como foi sua experiência?"
-            },
-            fr: {
-                header_title: "YT Thumb Grabber",
-                header_subtitle: "Téléchargez instantanément des miniatures YouTube de haute qualité",
-                download_title: "Télécharger des miniatures YouTube",
-                urls_placeholder: "Collez les URL YouTube ici (une par ligne pour le téléchargement en masse)",
-                get_thumbnails: "Obtenir les miniatures",
-                bulk_note: "Vous pouvez coller plusieurs liens YouTube pour télécharger des miniatures en masse.",
-                features_title: "Fonctionnalités prises en charge",
-                feature_4k_title: "Qualité 4K",
-                feature_4k_desc: "Téléchargez des miniatures en résolution maximale 4K (3840x2160)",
-                feature_instant_title: "Téléchargement instantané",
-                feature_instant_desc: "Téléchargement en un clic sans temps d'attente",
-                feature_bulk_title: "Téléchargement en masse",
-                feature_bulk_desc: "Téléchargez plusieurs miniatures dans un seul fichier ZIP",
-                feature_multilang_title: "Multilingue",
-                feature_multilang_desc: "Prend en charge 12 langues internationales",
-                feature_mobile_title: "Compatible mobile",
-                feature_mobile_desc: "Fonctionne parfaitement sur tous les appareils",
-                feature_privacy_title: "Axé sur la confidentialité",
-                feature_privacy_desc: "Aucune collecte de données, aucun enregistrement requis",
-                faq_title: "Questions fréquemment posées",
-                faq_download_title: "Comment télécharger des miniatures YouTube ?",
-                faq_download_desc: "Collez simplement la(les) URL de vidéo YouTube dans le champ ci-dessus et cliquez sur 'Obtenir les miniatures'. Ensuite, sélectionnez la qualité préférée et cliquez sur le bouton de téléchargement. Pour plusieurs URL, cliquez sur un bouton de qualité pour télécharger toutes les miniatures sous forme de fichier ZIP.",
-                faq_qualities_title: "Quelles qualités de miniature sont disponibles ?",
-                faq_qualities_desc: "Nous prenons en charge plusieurs résolutions, y compris 4K (3840x2160), 1080p (1920x1080), 720p (1280x720) et 480p (854x480).",
-                faq_bulk_title: "Comment fonctionne le téléchargement en masse ?",
-                faq_bulk_desc: "Entrez plusieurs URL YouTube (une par ligne) dans le champ de saisie, cliquez sur 'Obtenir les miniatures', sélectionnez une qualité dans le menu déroulant, et cliquez sur le bouton de téléchargement pour cette qualité pour télécharger toutes les miniatures dans un seul fichier ZIP.",
-                faq_free_title: "Ce service est-il gratuit ?",
-                faq_free_desc: "Absolument ! YT Thumb Grabber est entièrement gratuit, sans frais cachés ni niveaux premium.",
-                faq_store_title: "Stockez-vous mes miniatures téléchargées ?",
-                faq_store_desc: "Non, nous ne stockons aucune de vos miniatures téléchargées. Tout le traitement se fait dans votre navigateur.",
-                faq_mobile_title: "Puis-je utiliser ceci sur des appareils mobiles ?",
-                faq_mobile_desc: "Oui, notre site web est entièrement responsive et fonctionne parfaitement sur les smartphones, tablettes et ordinateurs de bureau.",
-                about_title: "À propos de YT Thumb Grabber",
-                about_desc: "Le moyen le plus simple de télécharger des miniatures YouTube en haute qualité, y compris le téléchargement en masse de plusieurs miniatures dans un seul fichier ZIP.",
-                share_title: "Partager",
-                quick_links_title: "Liens rapides",
-                quick_link_home: "Accueil",
-                quick_link_features: "Fonctionnalités",
-                quick_link_faq: "FAQ",
-                quick_link_privacy: "Politique de confidentialité",
-                quick_link_terms: "Conditions de service",
-                support_title: "Support",
-                support_contact: "Contactez-nous",
-                support_report: "Signaler un problème",
-                support_feedback: "Commentaires",
-                footer_copyright: "© 2023 YT Thumb Grabber. Tous droits réservés.",
-                reaction_title: "Comment était votre expérience ?"
-            },
-            de: {
-                header_title: "YT Thumb Grabber",
-                header_subtitle: "Laden Sie hochwertige YouTube-Thumbnails sofort herunter",
-                download_title: "YouTube-Thumbnails herunterladen",
-                urls_placeholder: "Fügen Sie YouTube-URLs hier ein (eine pro Zeile für Massen-Download)",
-                get_thumbnails: "Thumbnails abrufen",
-                bulk_note: "Sie können mehrere YouTube-Links einfügen, um Thumbnails in großen Mengen herunterzuladen.",
-                features_title: "Unterstützte Funktionen",
-                feature_4k_title: "4K-Qualität",
-                feature_4k_desc: "Laden Sie Thumbnails in maximaler 4K-Auflösung (3840x2160) herunter",
-                feature_instant_title: "Sofortiger Download",
-                feature_instant_desc: "Download mit einem Klick ohne Wartezeit",
-                feature_bulk_title: "Massen-Download",
-                feature_bulk_desc: "Laden Sie mehrere Thumbnails in einer einzigen ZIP-Datei herunter",
-                feature_multilang_title: "Mehrsprachig",
-                feature_multilang_desc: "Unterstützt 12 internationale Sprachen",
-                feature_mobile_title: "Mobilfreundlich",
-                feature_mobile_desc: "Funktioniert perfekt auf allen Geräten",
-                feature_privacy_title: "Datenschutzorientiert",
-                feature_privacy_desc: "Keine Datensammlung, keine Registrierung erforderlich",
-                faq_title: "Häufig gestellte Fragen",
-                faq_download_title: "Wie lade ich YouTube-Thumbnails herunter?",
-                faq_download_desc: "Fügen Sie einfach die YouTube-Video-URL(s) in das Eingabefeld oben ein und klicken Sie auf 'Thumbnails abrufen'. Wählen Sie dann die bevorzugte Qualität und klicken Sie auf den Download-Button. Für mehrere URLs klicken Sie auf einen Qualitätsbutton, um alle Thumbnails als ZIP-Datei herunterzuladen.",
-                faq_qualities_title: "Welche Thumbnail-Qualitäten sind verfügbar?",
-                faq_qualities_desc: "Wir unterstützen mehrere Auflösungen, einschließlich 4K (3840x2160), 1080p (1920x1080), 720p (1280x720) und 480p (854x480).",
-                faq_bulk_title: "Wie funktioniert der Massen-Download?",
-                faq_bulk_desc: "Geben Sie mehrere YouTube-URLs (eine pro Zeile) in das Eingabefeld ein, klicken Sie auf 'Thumbnails abrufen', wählen Sie eine Qualität aus dem Dropdown-Menü und klicken Sie auf den Download-Button für diese Qualität, um alle Thumbnails in einer einzigen ZIP-Datei herunterzuladen.",
-                faq_free_title: "Ist dieser Dienst kostenlos?",
-                faq_free_desc: "Absolut! YT Thumb Grabber ist völlig kostenlos ohne versteckte Gebühren oder Premium-Stufen.",
-                faq_store_title: "Speichern Sie meine heruntergeladenen Thumbnails?",
-                faq_store_desc: "Nein, wir speichern keine Ihrer heruntergeladenen Thumbnails. Die gesamte Verarbeitung erfolgt in Ihrem Browser.",
-                faq_mobile_title: "Kann ich dies auf Mobilgeräten verwenden?",
-                faq_mobile_desc: "Ja, unsere Website ist vollständig responsiv und funktioniert perfekt auf Smartphones, Tablets und Desktop-Computern.",
-                about_title: "Über YT Thumb Grabber",
-                about_desc: "Der einfachste Weg, YouTube-Thumbnails in hoher Qualität herunterzuladen, einschließlich des Massen-Downloads mehrerer Thumbnails in einer einzigen ZIP-Datei.",
-                share_title: "Teilen",
-                quick_links_title: "Schnelllinks",
-                quick_link_home: "Startseite",
-                quick_link_features: "Funktionen",
-                quick_link_faq: "FAQ",
-                quick_link_privacy: "Datenschutzrichtlinie",
-                quick_link_terms: "Nutzungsbedingungen",
-                support_title: "Support",
-                support_contact: "Kontaktieren Sie uns",
-                support_report: "Problem melden",
-                support_feedback: "Feedback",
-                footer_copyright: "© 2023 YT Thumb Grabber. Alle Rechte vorbehalten.",
-                reaction_title: "Wie war Ihre Erfahrung?"
-            },
-            ru: {
-                header_title: "YT Thumb Grabber",
-                header_subtitle: "Мгновенно скачивайте высококачественные миниатюры YouTube",
-                download_title: "Скачать миниатюры YouTube",
-                urls_placeholder: "Вставьте URL-адреса YouTube сюда (по одному в строке для массовой загрузки)",
-                get_thumbnails: "Получить миниатюры",
-                bulk_note: "Вы можете вставить несколько ссылок YouTube для массовой загрузки миниатюр.",
-                features_title: "Поддерживаемые функции",
-                feature_4k_title: "Качество 4K",
-                feature_4k_desc: "Скачивайте миниатюры в максимальном разрешении 4K (3840x2160)",
-                feature_instant_title: "Мгновенная загрузка",
-                feature_instant_desc: "Скачивание одним кликом без ожидания",
-                feature_bulk_title: "Массовая загрузка",
-                feature_bulk_desc: "Скачивайте несколько миниатюр в одном ZIP-файле",
-                feature_multilang_title: "Многоязычность",
-                feature_multilang_desc: "Поддерживает 12 международных языков",
-                feature_mobile_title: "Поддержка мобильных устройств",
-                feature_mobile_desc: "Идеально работает на всех устройствах",
-                feature_privacy_title: "Ориентированность на конфиденциальность",
-                feature_privacy_desc: "Без сбора данных, без регистрации",
-                faq_title: "Часто задаваемые вопросы",
-                faq_download_title: "Как скачать миниатюры YouTube?",
-                faq_download_desc: "Просто вставьте URL-адрес(а) видео YouTube в поле ввода выше и нажмите 'Получить миниатюры'. Затем выберите предпочтительное качество и нажмите кнопку загрузки. Для нескольких URL нажмите кнопку качества, чтобы скачать все миниатюры в виде ZIP-файла.",
-                faq_qualities_title: "Какие качества миниатюр доступны?",
-                faq_qualities_desc: "Мы поддерживаем несколько разрешений, включая 4K (3840x2160), 1080p (1920x1080), 720p (1280x720) и 480p (854x480).",
-                faq_bulk_title: "Как работает массовая загрузка?",
-                faq_bulk_desc: "Введите несколько URL-адресов YouTube (по одному в строке) в поле ввода, нажмите 'Получить миниатюры', выберите качество из выпадающего меню и нажмите кнопку загрузки для этого качества, чтобы скачать все миниатюры в одном ZIP-файле.",
-                faq_free_title: "Этот сервис бесплатный?",
-                faq_free_desc: "Абсолютно! YT Thumb Grabber полностью бесплатен, без скрытых платежей или премиум-уровней.",
-                faq_store_title: "Храните ли вы мои загруженные миниатюры?",
-                faq_store_desc: "Нет, мы не храним ваши загруженные миниатюры. Вся обработка происходит в вашем браузере.",
-                faq_mobile_title: "Могу ли я использовать это на мобильных устройствах?",
-                faq_mobile_desc: "Да, наш сайт полностью адаптивен и идеально работает на смартфонах, планшетах и настольных компьютерах.",
-                about_title: "О YT Thumb Grabber",
-                about_desc: "Самый простой способ скачать миниатюры YouTube в высоком качестве, включая массовую загрузку нескольких миниатюр в одном ZIP-файле.",
-                share_title: "Поделиться",
-                quick_links_title: "Быстрые ссылки",
-                quick_link_home: "Главная",
-                quick_link_features: "Функции",
-                quick_link_faq: "ЧаВО",
-                quick_link_privacy: "Политика конфиденциальности",
-                quick_link_terms: "Условия использования",
-                support_title: "Поддержка",
-                support_contact: "Связаться с нами",
-                support_report: "Сообщить о проблеме",
-                support_feedback: "Обратная связь",
-                footer_copyright: "© 2023 YT Thumb Grabber. Все права защищены.",
-                reaction_title: "Каковы ваши впечатления?"
-            },
-            zh: {
-                header_title: "YT Thumb Grabber",
-                header_subtitle: "即时下载高质量 YouTube 缩略图",
-                download_title: "下载 YouTube 缩略图",
-                urls_placeholder: "在此粘贴 YouTube 网址（每行一个，用于批量下载）",
-                get_thumbnails: "获取缩略图",
-                bulk_note: "您可以粘贴多个 YouTube 链接以批量下载缩略图。",
-                features_title: "支持的功能",
-                feature_4k_title: "4K 质量",
-                feature_4k_desc: "以最大 4K 分辨率（3840x2160）下载缩略图",
-                feature_instant_title: "即时下载",
-                feature_instant_desc: "一键下载，无需等待",
-                feature_bulk_title: "批量下载",
-                feature_bulk_desc: "将多个缩略图下载到一个 ZIP 文件中",
-                feature_multilang_title: "多语言",
-                feature_multilang_desc: "支持 12 种国际语言",
-                feature_mobile_title: "移动友好",
-                feature_mobile_desc: "在所有设备上完美运行",
-                feature_privacy_title: "注重隐私",
-                feature_privacy_desc: "无数据收集，无需注册",
-                faq_title: "常见问题",
-                faq_download_title: "如何下载 YouTube 缩略图？",
-                faq_download_desc: "只需在上方输入字段中粘贴 YouTube 视频 URL，然后点击“获取缩略图”。然后选择您喜欢的质量并点击下载按钮。对于多个 URL，点击质量按钮以 ZIP 文件形式下载所有缩略图。",
-                faq_qualities_title: "有哪些缩略图质量可用？",
-                faq_qualities_desc: "我们支持多种分辨率，包括 4K（3840x2160）、1080p（1920x1080）、720p（1280x720）和 480p（854x480）。",
-                faq_bulk_title: "批量下载如何工作？",
-                faq_bulk_desc: "在输入字段中输入多个 YouTube URL（每行一个），点击“获取缩略图”，从下拉菜单中选择质量，然后点击该质量的下载按钮，以将所有缩略图下载到一个 ZIP 文件中。",
-                faq_free_title: "这项服务是免费的吗？",
-                faq_free_desc: "当然！YT Thumb Grabber 完全免费，没有隐藏费用或高级套餐。",
-                faq_store_title: "你们会存储我下载的缩略图吗？",
-                faq_store_desc: "不会，我们不会存储您下载的任何缩略图。所有处理都在您的浏览器中进行。",
-                faq_mobile_title: "我可以在移动设备上使用吗？",
-                faq_mobile_desc: "是的，我们的网站完全响应式，在智能手机、平板电脑和台式电脑上都能完美运行。",
-                about_title: "关于 YT Thumb Grabber",
-                about_desc: "以高质量下载 YouTube 缩略图的最简单方法，包括将多个缩略图批量下载到一个 ZIP 文件中。",
-                share_title: "分享",
-                quick_links_title: "快速链接",
-                quick_link_home: "首页",
-                quick_link_features: "功能",
-                quick_link_faq: "常见问题",
-                quick_link_privacy: "隐私政策",
-                quick_link_terms: "服务条款",
-                support_title: "支持",
-                support_contact: "联系我们",
-                support_report: "报告问题",
-                support_feedback: "反馈",
-                footer_copyright: "© 2023 YT Thumb Grabber。保留所有权利。",
-                reaction_title: "您的体验如何？"
-            },
-            bn: {
-                header_title: "YT Thumb Grabber",
-                header_subtitle: "উচ্চ মানের YouTube থাম্বনেইল তাৎক্ষণিকভাবে ডাউনলোড করুন",
-                download_title: "YouTube থাম্বনেইল ডাউনলোড করুন",
-                urls_placeholder: "এখানে YouTube URL পেস্ট করুন (বাল্ক ডাউনলোডের জন্য প্রতি লাইনে একটি)",
-                get_thumbnails: "থাম্বনেইল পান",
-                bulk_note: "আপনি বাল্ক থাম্বনেইল ডাউনলোড করতে একাধিক YouTube লিঙ্ক পেস্ট করতে পারেন।",
-                features_title: "সমর্থিত বৈশিষ্ট্য",
-                feature_4k_title: "4K গুণমান",
-                feature_4k_desc: "সর্বোচ্চ 4K রেজোলিউশনে থাম্বনেইল ডাউনলোড করুন (3840x2160)",
-                feature_instant_title: "তাৎক্ষণিক ডাউনলোড",
-                feature_instant_desc: "কোনো অপেক্ষার সময় ছাড়াই এক-ক্লিক ডাউনলোড",
-                feature_bulk_title: "বাল্ক ডাউনলোড",
-                feature_bulk_desc: "একটি একক ZIP ফাইলে একাধিক থাম্বনেইল ডাউনলোড করুন",
-                feature_multilang_title: "বহুভাষিক",
-                feature_multilang_desc: "12টি আন্তর্জাতিক ভাষা সমর্থন করে",
-                feature_mobile_title: "মোবাইল ফ্রেন্ডলি",
-                feature_mobile_desc: "সব ডিভাইসে নিখুঁতভাবে কাজ করে",
-                feature_privacy_title: "গোপনীয়তা কেন্দ্রিক",
-                feature_privacy_desc: "কোনো ডেটা সংগ্রহ নেই, কোনো নিবন্ধন প্রয়োজন নেই",
-                faq_title: "প্রায়শই জিজ্ঞাসিত প্রশ্ন",
-                faq_download_title: "আমি কীভাবে YouTube থাম্বনেইল ডাউনলোড করব?",
-                faq_download_desc: "শুধু উপরের ইনপুট ফিল্ডে YouTube ভিডিও URL(গুলি) পেস্ট করুন এবং 'থাম্বনেইল পান' ক্লিক করুন। তারপর আপনার পছন্দের গুণমান নির্বাচন করুন এবং ডাউনলোড বোতামে ক্লিক করুন। একাধিক URL-এর জন্য, একটি গুণমান বোতামে ক্লিক করুন যাতে সব থাম্বনেইল একটি ZIP ফাইল হিসেবে ডাউনলোড হয়।",
-                faq_qualities_title: "কোন থাম্বনেইল গুণমান উপলব্ধ?",
-                faq_qualities_desc: "আমরা একাধিক রেজোলিউশন সমর্থন করি, যার মধ্যে রয়েছে 4K (3840x2160), 1080p (1920x1080), 720p (1280x720), এবং 480p (854x480)।",
-                faq_bulk_title: "বাল্ক ডাউনলোড কীভাবে কাজ করে?",
-                faq_bulk_desc: "ইনপুট ফিল্ডে একাধিক YouTube URL (প্রতি লাইনে একটি) লিখুন, 'থাম্বনেইল পান' ক্লিক করুন, ড্রপডাউন থেকে একটি গুণমান নির্বাচন করুন, এবং সেই গুণমানের জন্য ডাউনলোড বোতামে ক্লিক করুন যাতে সব থাম্বনেইল একটি একক ZIP ফাইলে ডাউনলোড হয়।",
-                faq_free_title: "এই পরিষেবাটি কি বিনামূল্যে ব্যবহার করা যায়?",
-                faq_free_desc: "অবশ্যই! YT Thumb Grabber সম্পূর্ণ বিনামূল্যে, কোনো লুকানো চার্জ বা প্রিমিয়াম স্তর ছাড়াই।",
-                faq_store_title: "আপনি কি আমার ডাউনলোড করা থাম্বনেইল সংরক্ষণ করেন?",
-                faq_store_desc: "না, আমরা আপনার ডাউনলোড করা কোনো থাম্বনেইল সংরক্ষণ করি না। সমস্ত প্রক্রিয়াকরণ আপনার ব্রাউজারে ঘটে।",
-                faq_mobile_title: "আমি কি মোবাইল ডিভাইসে এটি ব্যবহার করতে পারি?",
-                faq_mobile_desc: "হ্যাঁ, আমাদের ওয়েবসাইট সম্পূর্ণরূপে প্রতিক্রিয়াশীল এবং স্মার্টফোন, ট্যাবলেট এবং ডেস্কটপ কম্পিউটারে নিখুঁতভাবে কাজ করে।",
-                about_title: "YT Thumb Grabber সম্পর্কে",
-                about_desc: "উচ্চ মানের YouTube থাম্বনেইল ডাউনলোড করার সবচেয়ে সহজ উপায়, যার মধ্যে একটি একক ZIP ফাইলে একাধিক থাম্বনেইলের বাল্ক ডাউনলোডও রয়েছে।",
-                share_title: "শেয়ার করুন",
-                quick_links_title: "দ্রুত লিঙ্ক",
-                quick_link_home: "হোম",
-                quick_link_features: "বৈশিষ্ট্য",
-                quick_link_faq: "প্রায়শই জিজ্ঞাসিত প্রশ্ন",
-                quick_link_privacy: "গোপনীয়তা নীতি",
-                quick_link_terms: "পরিষেবার শর্তাবলী",
-                support_title: "সমর্থন",
-                support_contact: "যোগাযোগ করুন",
-                support_report: "সমস্যা রিপোর্ট করুন",
-                support_feedback: "প্রতিক্রিয়া",
-                footer_copyright: "© 2023 YT Thumb Grabber। সর্বস্বত্ব সংরক্ষিত।",
-                reaction_title: "আপনার অভিজ্ঞতা কেমন ছিল?"
-            }
-        };
-
-        function changeLanguage(lang) {
-            document.querySelectorAll('[data-i18n]').forEach(element => {
-                const key = element.getAttribute('data-i18n');
-                if (translations[lang][key]) {
-                    element.textContent = translations[lang][key];
-                }
-            });
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
-                const key = element.getAttribute('data-i18n-placeholder');
-                if (translations[lang][key]) {
-                    element.placeholder = translations[lang][key];
-                }
-            });
-            document.documentElement.lang = lang;
-        }
-
-        document.getElementById('language-selector').addEventListener('change', (event) => {
-            changeLanguage(event.target.value);
-        });
-
-        // Initialize with default language
-        changeLanguage('en');
-
-        // Thumbnail fetching logic
-        document.getElementById('get-thumbnails').addEventListener('click', () => {
-            const urls = document.getElementById('youtube-urls').value.split('\n').filter(url => url.trim());
-            const previews = document.getElementById('thumbnail-previews');
-            previews.innerHTML = '';
-            const videoIds = [];
-            urls.forEach(url => {
-                const videoId = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/)?.[1];
-                if (videoId) {
-                    videoIds.push(videoId);
-                    const qualities = [
-                        { name: '4K', res: 'maxresdefault', width: 3840, height: 2160 },
-                        { name: '1080p', res: 'hqdefault', width: 1920, height: 1080 },
-                        { name: '720p', res: 'mqdefault', width: 1280, height: 720 },
-                        { name: '480p', res: 'sddefault', width: 854, height: 480 }
-                    ];
-                     qualities.forEach(quality => {
-                        const div = document.createElement('div');
-                        div.className = 'thumbnail-preview text-center';
-                        const img = document.createElement('img');
-                        img.src = `https://img.youtube.com/vi/${videoId}/${quality.res}.jpg`;
-                        img.alt = `Thumbnail ${quality.name}`;
-                        img.className = 'w-full rounded shadow mb-2';
-                        const downloadBtn = document.createElement('button');
-                        downloadBtn.className = 'download-button bg-green-600 text-white p-2 rounded inline-block';
-                        downloadBtn.textContent = `Download ${quality.name}`;
-                        downloadBtn.addEventListener('click', async () => {
-                            if (videoIds.length === 1) {
-                                const link = document.createElement('a');
-                                link.href = img.src;
-                                link.download = `thumbnail_${videoId}_${quality.name}.jpg`;
-                                link.click();
-                            } else {
-                                const zip = new JSZip();
-                                for (const id of videoIds) {
-                                    try {
-                                        const response = await fetch(`https://img.youtube.com/vi/${id}/${quality.res}.jpg`);
-                                        if (response.ok) {
-                                            const blob = await response.blob();
-                                            zip.file(`thumbnail_${id}_${quality.name}.jpg`, blob);
-                                        }
-                                    } catch (error) {
-                                        alert(`Error fetching thumbnail for video ID: ${id}`);
-                                    }
-                                }
-                                if (Object.keys(zip.files).length > 0) {
-                                    zip.generateAsync({ type: 'blob' }).then(blob => {
-                                        saveAs(blob, `youtube_thumbnails_${quality.name}.zip`);
-                                    });
-                                }
-                            }
-                        });
-                        div.appendChild(img);
-                        div.appendChild(downloadBtn);
-                        previews.appendChild(div);
-                    });
-                } else {
-                    alert(`Invalid YouTube URL: ${url}`);
-                }
-            });
-        });
-
-        // Reaction counter logic
-        let reactions = { like: 0, love: 0, wow: 0, sad: 0 };
-        document.querySelectorAll('.reaction-button').forEach(button => {
-            button.addEventListener('click', () => {
-                const reaction = button.getAttribute('data-reaction');
-                reactions[reaction]++;
-                document.getElementById(`${reaction}-count`).textContent = reactions[reaction];
-            });
-        });
+        const translations={en:{header_title:"YT Thumb Grabber",header_subtitle:"Download high-quality YouTube thumbnails instantly",download_title:"Download YouTube Thumbnails",urls_placeholder:"Paste YouTube URLs here (one per line for bulk download)",get_thumbnails:"Get Thumbnails",bulk_note:"(You can paste multiple YouTube links to download bulk thumbnails.)",features_title:"Supported Features",feature_4k_title:"4K Quality",feature_4k_desc:"Download thumbnails in maximum 4K resolution (3840x2160)",feature_instant_title:"Instant Download",feature_instant_desc:"One-click download without any waiting time",feature_bulk_title:"Bulk Download",feature_bulk_desc:"Download multiple thumbnails in a single ZIP file",feature_multilang_title:"Multi-language",feature_multilang_desc:"Supports 12 international languages",feature_mobile_title:"Mobile Friendly",feature_mobile_desc:"Works perfectly on all devices",feature_privacy_title:"Privacy Focused",feature_privacy_desc:"No data collection, no registration required",faq_title:"Frequently Asked Questions",faq_download_title:"How do I download YouTube thumbnails?",faq_download_desc:"Simply paste the YouTube video URL(s) in the input field above and click 'Get Thumbnails'. Then select your preferred quality and click the download button. For multiple URLs, click a quality button to download all thumbnails as a ZIP file.",faq_qualities_title:"What thumbnail qualities are available?",faq_qualities_desc:"We support multiple resolutions including 4K (3840x2160), 1080p (1920x1080), 720p (1280x720), and 480p (854x480).",faq_bulk_title:"How does bulk download work?",faq_bulk_desc:"Enter multiple YouTube URLs (one per line) in the input field, click 'Get Thumbnails', select a quality from the dropdown, and click the download button for that quality to download all thumbnails in a single ZIP file.",faq_free_title:"Is this service free to use?",faq_free_desc:"Absolutely! YT Thumb Grabber is completely free with no hidden charges or premium tiers.",faq_store_title:"Do you store my downloaded thumbnails?",faq_store_desc:"No, we don't store any of your downloaded thumbnails. All processing happens in your browser.",faq_mobile_title:"Can I use this on mobile devices?",faq_mobile_desc:"Yes, our website is fully responsive and works perfectly on smartphones, tablets, and desktop computers.",about_title:"About YT Thumb Grabber",about_desc:"The easiest way to download YouTube thumbnails in high quality, including bulk download of multiple thumbnails in a single ZIP file.",share_title:"Share",quick_links_title:"Quick Links",quick_link_home:"Home",quick_link_features:"Features",quick_link_faq:"FAQ",quick_link_privacy:"Privacy Policy",quick_link_terms:"Terms of Service",support_title:"Support",support_contact:"Contact Us",support_report:"Report Issue",support_feedback:"Feedback",footer_copyright:"© 2023 YT Thumb Grabber. All rights reserved.",reaction_title:"How was your experience?"},hi:{header_title:"YT थंब ग्रैबर",header_subtitle:"उच्च गुणवत्ता वाले YouTube थंबनेल तुरंत डाउनलोड करें",download_title:"YouTube थंबनेल डाउनलोड करें",urls_placeholder:"यहां YouTube URL चिपकाएं (बल्क डाउनलोड के लिए प्रति पंक्ति एक)",get_thumbnails:"थंबनेल प्राप्त करें",bulk_note:"(आप बल्क थंबनेल डाउनलोड करने के लिए कई YouTube लिंक चिपका सकते हैं।)",features_title:"समर्थित विशेषताएं",feature_4k_title:"4K गुणवत्ता",feature_4k_desc:"अधिकतम 4K रिज़ॉल्यूशन (3840x2160) में थंबनेल डाउनलोड करें",feature_instant_title:"तुरंत डाउनलोड",feature_instant_desc:"बिना किसी प्रतीक्षा समय के एक-क्लिक डाउनलोड",feature_bulk_title:"बल्क डाउनलोड",feature_bulk_desc:"एक ही ZIP फ़ाइल में कई थंबनेल डाउनलोड करें",feature_multilang_title:"बहु-भाषा",feature_multilang_desc:"12 अंतरराष्ट्रीय भाषाओं का समर्थन करता है",feature_mobile_title:"मोबाइल फ्रेंडली",feature_mobile_desc:"सभी डिवाइस पर पूरी तरह से काम करता है",feature_privacy_title:"गोपनीयता केंद्रित",feature_privacy_desc:"कोई डेटा संग्रह नहीं, कोई पंजीकरण आवश्यक नहीं",faq_title:"अक्सर पूछे जाने वाले प्रश्न",faq_download_title:"मैं YouTube थंबनेल कैसे डाउनलोड करूं?",faq_download_desc:"बस ऊपर दिए गए इनपुट फ़ील्ड में YouTube वीडियो URL(s) चिपकाएं और 'थंबनेल प्राप्त करें' पर क्लिक करें। फिर अपनी पसंदीदा गुणवत्ता चुनें और डाउनलोड बटन पर क्लिक करें। एकाधिक URL के लिए, सभी थंबनेल ZIP फ़ाइल के रूप में डाउनलोड करने के लिए गुणवत्ता बटन पर क्लिक करें।",faq_qualities_title:"कौन सी थंबनेल गुणवत्ता उपलब्ध हैं?",faq_qualities_desc:"हम कई रिज़ॉल्यूशन का समर्थन करते हैं, जिसमें 4K (3840x2160), 1080p (1920x1080), 720p (1280x720), और 480p (854x480) शामिल हैं।",faq_bulk_title:"बल्क डाउनलोड कैसे काम करता है?",faq_bulk_desc:"इनपुट फ़ील्ड में कई YouTube URL (प्रति पंक्ति एक) दर्ज करें, 'थंबनेल प्राप्त करें' पर क्लिक करें, ड्रॉपडाउन से एक गुणवत्ता चुनें, और उस गुणवत्ता के लिए डाउनलोड बटन पर क्लिक करें ताकि सभी थंबनेल एक ही ZIP फ़ाइल में डाउनलोड हो सकें।",faq_free_title:"क्या यह सेवा मुफ्त है?",faq_free_desc:"बिल्कुल! YT थंब ग्रैबर पूरी तरह से मुफ्त है, बिना किसी छिपे शुल्क या प्रीमियम स्तर के।",faq_store_title:"क्या आप मेरे डाउनलोड किए गए थंबनेल स्टोर करते हैं?",faq_store_desc:"नहीं, हम आपके डाउनलोड किए गए थंबनेल को स्टोर नहीं करते। सारा प्रसंस्करण आपके ब्राउज़र में होता है।",faq_mobile_title:"क्या मैं इसे मोबाइल डिवाइस पर उपयोग कर सकता हूँ?",faq_mobile_desc:"हाँ, हमारी वेबसाइट पूरी तरह से उत्तरदायी है और स्मार्टफोन, टैबलेट, और डेस्कटॉप कंप्यूटर पर पूरी तरह से काम करती है।",about_title:"YT थंब ग्रैबर के बारे में",about_desc:"उच्च गुणवत्ता में YouTube थंबनेल डाउनलोड करने का सबसे आसान तरीका, जिसमें एक ही ZIP फ़ाइल में कई थंबनेल का बल्क डाउनलोड भी शामिल है।",share_title:"साझा करें",quick_links_title:"त्वरित लिंक",quick_link_home:"होम",quick_link_features:"विशेषताएं",quick_link_faq:"अक्सर पूछे जाने वाले प्रश्न",quick_link_privacy:"गोपनीयता नीति",quick_link_terms:"सेवा की शर्तें",support_title:"समर्थन",support_contact:"हमसे संपर्क करें",support_report:"समस्या की रिपोर्ट करें",support_feedback:"प्रतिक्रिया",footer_copyright:"© 2023 YT थंब ग्रैबर। सभी अधिकार सुरक्षित।",reaction_title:"आपका अनुभव कैसा रहा?"},ur:{header_title:"YT تھمب گرابر",header_subtitle:"اعلیٰ معیار کے یوٹیوب تھمب نیلز فوری طور پر ڈاؤن لوڈ کریں",download_title:"یوٹیوب تھمب نیلز ڈاؤن لوڈ کریں",urls_placeholder:"یہاں یوٹیوب یو آر ایل پیسٹ کریں (بلک ڈاؤن لوڈ کے لیے فی سطر ایک)",get_thumbnails:"تھمب نیلز حاصل کریں",bulk_note:"(آپ بلک تھمب نیلز ڈاؤن لوڈ کرنے کے لیے متعدد یوٹیوب لنکس پیسٹ کر سکتے ہیں۔)",features_title:"سپورٹڈ فیچرز",feature_4k_title:"4K معیار",feature_4k_desc:"زیادہ سے زیادہ 4K ریزولوشن (3840x2160) میں تھمب نیلز ڈاؤن لوڈ کریں",feature_instant_title:"فوری ڈاؤن لوڈ",feature_instant_desc:"بغیر کسی انتظار کے ایک کلک ڈاؤن لوڈ",feature_bulk_title:"بلک ڈاؤن لوڈ",feature_bulk_desc:"ایک ہی ZIP فائل میں متعدد تھمب نیلز ڈاؤن لوڈ کریں",feature_multilang_title:"کثیر لسانی",feature_multilang_desc:"12 بین الاقوامی زبانوں کی حمایت کرتا ہے",feature_mobile_title:"موبائل فرینڈلی",feature_mobile_desc:"تمام آلات پر بہترین کام کرتا ہے",feature_privacy_title:"رازداری پر توجہ",feature_privacy_desc:"کوئی ڈیٹا جمع نہیں، کوئی رجسٹریشن درکار نہیں",faq_title:"اکثر پوچھے جانے والے سوالات",faq_download_title:"میں یوٹیوب تھمب نیلز کیسے ڈاؤن لوڈ کروں؟",faq_download_desc:"بس اوپر دیے گئے ان پٹ فیلڈ میں یوٹیوب ویڈیو یو آر ایلز پیسٹ کریں اور 'تھمب نیلز حاصل کریں' پر کلک کریں۔ پھر اپنی پسندیدہ معیار منتخب کریں اور ڈاؤن لوڈ بٹن پر کلک کریں۔ متعدد یو آر ایلز کے لیے، تمام تھمب نیلز ZIP فائل کے طور پر ڈاؤن لوڈ کرنے کے لیے معیار کا بٹن کلک کریں۔",faq_qualities_title:"کون سے تھمب نیل معیار دستیاب ہیں؟",faq_qualities_desc:"ہم متعدد ریزولوشنز کی حمایت کرتے ہیں، بشمول 4K (3840x2160)، 1080p (1920x1080)، 720p (1280x720)، اور 480p (854x480)۔",faq_bulk_title:"بلک ڈاؤن لوڈ کیسے کام کرتا ہے؟",faq_bulk_desc:"ان پٹ فیلڈ میں متعدد یوٹیوب یو آر ایل (فی سطر ایک) درج کریں، 'تھمب نیلز حاصل کریں' پر کلک کریں، ڈراپ ڈاؤن سے ایک معیار منتخب کریں، اور اس معیار کے لیے ڈاؤن لوڈ بٹن پر کلک کریں تاکہ تمام تھمب نیلز ایک ہی ZIP فائل میں ڈاؤن لوڈ ہو سکیں۔",faq_free_title:"کیا یہ سروس مفت ہے؟",faq_free_desc:"بالکل! YT تھمب گرابر مکمل طور پر مفت ہے بغیر کسی خفیہ چارجز یا پریمیم درجوں کے۔",faq_store_title:"کیا آپ میرے ڈاؤن لوڈ کردہ تھمب نیلز اسٹور کرتے ہیں؟",faq_store_desc:"نہیں، ہم آپ کے ڈاؤن لوڈ کردہ تھمب نیلز کو اسٹور نہیں کرتے۔ تمام پروسیسنگ آپ کے براؤزر میں ہوتی ہے۔",faq_mobile_title:"کیا میں اسے موبائل ڈیوائسز پر استعمال کر سکتا ہوں؟",faq_mobile_desc:"ہاں، ہماری ویب سائٹ مکمل طور پر ریسپانسیو ہے اور اسمارٹ فونز، ٹیبلیٹس، اور ڈیسک ٹاپ کمپیوٹرز پر بہترین کام کرتی ہے۔",about_title:"YT تھمب گرابر کے بارے میں",about_desc:"اعلیٰ معیار میں یوٹیوب تھمب نیلز ڈاؤن لوڈ کرنے کا سب سے آسان طریقہ، بشمول ایک ہی ZIP فائل میں متعدد تھمب نیلز کا بلک ڈاؤن لوڈ۔",share_title:"شئیر کریں",quick_links_title:"فوری لنکس",quick_link_home:"ہوم",quick_link_features:"فیچرز",quick_link_faq:"اکثر پوچھے جانے والے سوالات",quick_link_privacy:"رازداری کی پالیسی",quick_link_terms:"سروس کی شرائط",support_title:"سپورٹ",support_contact:"ہم سے رابطہ کریں",support_report:"مسئلہ رپورٹ کریں",support_feedback:"رائے",footer_copyright:"© 2023 YT تھمب گرابر۔ تمام حقوق محفوظ ہیں۔",reaction_title:"آپ کا تجربہ کیسا رہا؟"},es:{header_title:"YT Thumb Grabber",header_subtitle:"Descarga miniaturas de YouTube de alta calidad al instante",download_title:"Descargar miniaturas de YouTube",urls_placeholder:"Pega las URLs de YouTube aquí (una por línea para descarga masiva)",get_thumbnails:"Obtener miniaturas",bulk_note:"(Puedes pegar múltiples enlaces de YouTube para descargar miniaturas en masa.)",features_title:"Características compatibles",feature_4k_title:"Calidad 4K",feature_4k_desc:"Descarga miniaturas en resolución máxima 4K (3840x2160)",feature_instant_title:"Descarga instantánea",feature_instant_desc:"Descarga con un solo clic sin tiempo de espera",feature_bulk_title:"Descarga masiva",feature_bulk_desc:"Descarga múltiples miniaturas en un solo archivo ZIP",feature_multilang_title:"Multilenguaje",feature_multilang_desc:"Soporta 12 idiomas internacionales",feature_mobile_title:"Compatible con móviles",feature_mobile_desc:"Funciona perfectamente en todos los dispositivos",feature_privacy_title:"Enfocado en la privacidad",feature_privacy_desc:"Sin recolección de datos, sin necesidad de registro",faq_title:"Preguntas frecuentes",faq_download_title:"¿Cómo descargo miniaturas de YouTube?",faq_download_desc:"Simplemente pega la(s) URL(s) de video de YouTube en el campo de entrada arriba y haz clic en 'Obtener miniaturas'. Luego selecciona la calidad preferida y haz clic en el botón de descarga. Para múltiples URLs, haz clic en un botón de calidad para descargar todas las miniaturas como un archivo ZIP.",faq_qualities_title:"¿Qué calidades de miniatura están disponibles?",faq_qualities_desc:"Soportamos múltiples resoluciones incluyendo 4K (3840x2160), 1080p (1920x1080), 720p (1280x720) y 480p (854x480).",faq_bulk_title:"¿Cómo funciona la descarga masiva?",faq_bulk_desc:"Ingresa múltiples URLs de YouTube (una por línea) en el campo de entrada, haz clic en 'Obtener miniaturas', selecciona una calidad desde el desplegable, y haz clic en el botón de descarga para esa calidad para descargar todas las miniaturas en un solo archivo ZIP.",faq_free_title:"¿Es gratis este servicio?",faq_free_desc:"¡Absolutamente! YT Thumb Grabber es completamente gratis sin cargos ocultos ni niveles premium.",faq_store_title:"¿Almacenan mis miniaturas descargadas?",faq_store_desc:"No, no almacenamos ninguna de tus miniaturas descargadas. Todo el procesamiento ocurre en tu navegador.",faq_mobile_title:"¿Puedo usar esto en dispositivos móviles?",faq_mobile_desc:"Sí, nuestro sitio web es totalmente responsive y funciona perfectamente en smartphones, tabletas y computadoras de escritorio.",about_title:"Acerca de YT Thumb Grabber",about_desc:"La forma más fácil de descargar miniaturas de YouTube en alta calidad, incluyendo la descarga masiva de múltiples miniaturas en un solo archivo ZIP.",share_title:"Compartir",quick_links_title:"Enlaces rápidos",quick_link_home:"Inicio",quick_link_features:"Características",quick_link_faq:"Preguntas frecuentes",quick_link_privacy:"Política de privacidad",quick_link_terms:"Términos de servicio",support_title:"Soporte",support_contact:"Contáctanos",support_report:"Reportar problema",support_feedback:"Comentarios",footer_copyright:"© 2023 YT Thumb Grabber. Todos los derechos reservados.",reaction_title:"¿Cómo fue tu experiencia?"},fil:{header_title:"YT Thumb Grabber",header_subtitle:"I-download ang mga high-quality na thumbnail ng YouTube nang instant",download_title:"I-download ang mga Thumbnail ng YouTube",urls_placeholder:"I-paste ang mga YouTube URL dito (isa bawat linya para sa bulk download)",get_thumbnails:"Kumuha ng mga Thumbnail",bulk_note:"(Maaari kang mag-paste ng maraming YouTube link upang i-download ang mga thumbnail nang maramihan.)",features_title:"Mga Sinusuportahang Feature",feature_4k_title:"4K na Kalidad",feature_4k_desc:"I-download ang mga thumbnail sa maximum na 4K resolution (3840x2160)",feature_instant_title:"Instant na Pag-download",feature_instant_desc:"One-click na pag-download nang walang anumang oras ng paghihintay",feature_bulk_title:"Bulk Download",feature_bulk_desc:"I-download ang maraming thumbnail sa isang ZIP file",feature_multilang_title:"Multi-language",feature_multilang_desc:"Sumusuporta sa 12 internasyonal na wika",feature_mobile_title:"Mobile Friendly",feature_mobile_desc:"Gumagana nang perpekto sa lahat ng device",feature_privacy_title:"Nakatuon sa Privacy",feature_privacy_desc:"Walang koleksyon ng data, walang kinakailangang pagpaparehistro",faq_title:"Mga Madalas Itanong",faq_download_title:"Paano ko i-da-download ang mga thumbnail ng YouTube?",faq_download_desc:"I-paste lamang ang (mga) YouTube video URL sa input field sa itaas at i-click ang 'Kumuha ng mga Thumbnail'. Pagkatapos ay piliin ang iyong gustong kalidad at i-click ang download button. Para sa maraming URL, i-click ang button ng kalidad upang i-download ang lahat ng thumbnail bilang ZIP file.",faq_qualities_title:"Anong mga kalidad ng thumbnail ang available?",faq_qualities_desc:"Sumusuporta kami ng maraming resolution kabilang ang 4K (3840x2160), 1080p (1920x1080), 720p (1280x720), at 480p (854x480).",faq_bulk_title:"Paano gumagana ang bulk download?",faq_bulk_desc:"Maglagay ng maraming YouTube URL (isa bawat linya) sa input field, i-click ang 'Kumuha ng mga Thumbnail', pumili ng kalidad mula sa dropdown, at i-click ang download button para sa kalidad na iyon upang i-download ang lahat ng thumbnail sa isang ZIP file.",faq_free_title:"Libre ba ang serbisyong ito?",faq_free_desc:"Talagang! Ang YT Thumb Grabber ay ganap na libre na walang mga nakatagong bayarin o premium tiers.",faq_store_title:"Iniimbak ba ninyo ang aking na-download na mga thumbnail?",faq_store_desc:"Hindi, hindi namin iniimbak ang anumang na-download na mga thumbnail. Lahat ng pagpoproseso ay nangyayari sa iyong browser.",faq_mobile_title:"Maaari ko bang gamitin ito sa mga mobile device?",faq_mobile_desc:"Oo, ang aming website ay ganap na responsive at gumagana nang perpekto sa mga smartphone, tablet, at desktop computer.",about_title:"Tungkol sa YT Thumb Grabber",about_desc:"Ang pinakamadaling paraan upang i-download ang mga thumbnail ng YouTube sa mataas na kalidad, kabilang ang bulk download ng maraming thumbnail sa isang ZIP file.",share_title:"Ibahagi",quick_links_title:"Mga Mabilisang Link",quick_link_home:"Home",quick_link_features:"Mga Feature",quick_link_faq:"Mga FAQ",quick_link_privacy:"Patakaran sa Privacy",quick_link_terms:"Mga Tuntunin ng Serbisyo",support_title:"Suporta",support_contact:"Makipag-ugnayan sa Amin",support_report:"Mag-ulat ng Isyu",support_feedback:"Feedback",footer_copyright:"© 2023 YT Thumb Grabber. Lahat ng karapatan ay nakalaan.",reaction_title:"Kumusta ang iyong karanasan?"},id:{header_title:"YT Thumb Grabber",header_subtitle:"Unduh thumbnail YouTube berkualitas tinggi secara instan",download_title:"Unduh Thumbnail YouTube",urls_placeholder:"Tempel URL YouTube di sini (satu per baris untuk unduhan massal)",get_thumbnails:"Dapatkan Thumbnail",bulk_note:"(Anda dapat menempelkan beberapa tautan YouTube untuk mengunduh thumbnail secara massal.)",features_title:"Fitur yang Didukung",feature_4k_title:"Kualitas 4K",feature_4k_desc:"Unduh thumbnail dalam resolusi maksimum 4K (3840x2160)",feature_instant_title:"Unduhan Instan",feature_instant_desc:"Unduhan sekali klik tanpa waktu tunggu",feature_bulk_title:"Unduhan Massal",feature_bulk_desc:"Unduh beberapa thumbnail dalam satu file ZIP",feature_multilang_title:"Multi-bahasa",feature_multilang_desc:"Mendukung 12 bahasa internasional",feature_mobile_title:"Ramah Seluler",feature_mobile_desc:"Berfungsi dengan sempurna di semua perangkat",feature_privacy_title:"Fokus pada Privasi",feature_privacy_desc:"Tidak ada pengumpulan data, tidak perlu registrasi",faq_title:"Pertanyaan yang Sering Diajukan",faq_download_title:"Bagaimana cara mengunduh thumbnail YouTube?",faq_download_desc:"Cukup tempel URL(s) video YouTube di kolom input di atas dan klik 'Dapatkan Thumbnail'. Kemudian pilih kualitas yang diinginkan dan klik tombol unduh. Untuk beberapa URL, klik tombol kualitas untuk mengunduh semua thumbnail sebagai file ZIP.",faq_qualities_title:"Kualitas thumbnail apa yang tersedia?",faq_qualities_desc:"Kami mendukung beberapa resolusi termasuk 4K (3840x2160), 1080p (1920x1080), 720p (1280x720), dan 480p (854x480).",faq_bulk_title:"Bagaimana cara kerja unduhan massal?",faq_bulk_desc:"Masukkan beberapa URL YouTube (satu per baris) di kolom input, klik 'Dapatkan Thumbnail', pilih kualitas dari dropdown, dan klik tombol unduh untuk kualitas tersebut untuk mengunduh semua thumbnail dalam satu file ZIP.",faq_free_title:"Apakah layanan ini gratis?",faq_free_desc:"Tentu saja! YT Thumb Grabber sepenuhnya gratis tanpa biaya tersembunyi atau tingkatan premium.",faq_store_title:"Apakah Anda menyimpan thumbnail yang saya unduh?",faq_store_desc:"Tidak, kami tidak menyimpan thumbnail yang Anda unduh. Semua pemrosesan terjadi di browser Anda.",faq_mobile_title:"Apakah saya bisa menggunakan ini di perangkat seluler?",faq_mobile_desc:"Ya, situs web kami sepenuhnya responsif dan berfungsi dengan sempurna di smartphone, tablet, dan komputer desktop.",about_title:"Tentang YT Thumb Grabber",about_desc:"Cara termudah untuk mengunduh thumbnail YouTube dalam kualitas tinggi, termasuk unduhan massal beberapa thumbnail dalam satu file ZIP.",share_title:"Bagikan",quick_links_title:"Tautan Cepat",quick_link_home:"Beranda",quick_link_features:"Fitur",quick_link_faq:"FAQ",quick_link_privacy:"Kebijakan Privasi",quick_link_terms:"Syarat Layanan",support_title:"Dukungan",support_contact:"Hubungi Kami",support_report:"Laporkan Masalah",support_feedback:"Umpan Balik",footer_copyright:"© 2023 YT Thumb Grabber. Semua hak dilindungi.",reaction_title:"Bagaimana pengalaman Anda?"},pt:{header_title:"YT Thumb Grabber",header_subtitle:"Baixe miniaturas do YouTube de alta qualidade instantaneamente",download_title:"Baixar Miniaturas do YouTube",urls_placeholder:"Cole as URLs do YouTube aqui (uma por linha para download em massa)",get_thumbnails:"Obter Miniaturas",bulk_note:"(Você pode colar vários links do YouTube para baixar miniaturas em massa.)",features_title:"Recursos Suportados",feature_4k_title:"Qualidade 4K",feature_4k_desc:"Baixe miniaturas na resolução máxima de 4K (3840x2160)",feature_instant_title:"Download Instantâneo",feature_instant_desc:"Download com um clique sem tempo de espera",feature_bulk_title:"Download em Massa",feature_bulk_desc:"Baixe várias miniaturas em um único arquivo ZIP",feature_multilang_title:"Multilíngue",feature_multilang_desc:"Suporta 12 idiomas internacionais",feature_mobile_title:"Compatível com Celulares",feature_mobile_desc:"Funciona perfeitamente em todos os dispositivos",feature_privacy_title:"Focado em Privacidade",feature_privacy_desc:"Sem coleta de dados, sem necessidade de registro",faq_title:"Perguntas Frequentes",faq_download_title:"Como faço para baixar miniaturas do YouTube?",faq_download_desc:"Basta colar a(s) URL(s) do vídeo do YouTube no campo de entrada acima e clicar em 'Obter Miniaturas'. Em seguida, selecione a qualidade desejada e clique no botão de download. Para várias URLs, clique em um botão de qualidade para baixar todas as miniaturas como um arquivo ZIP.",faq_qualities_title:"Quais qualidades de miniatura estão disponíveis?",faq_qualities_desc:"Suportamos várias resoluções, incluindo 4K (3840x2160), 1080p (1920x1080), 720p (1280x720) e 480p (854x480).",faq_bulk_title:"Como funciona o download em massa?",faq_bulk_desc:"Insira várias URLs do YouTube (uma por linha) no campo de entrada, clique em 'Obter Miniaturas', selecione uma qualidade no menu suspenso e clique no botão de download para essa qualidade para baixar todas as miniaturas em um único arquivo ZIP.",faq_free_title:"Este serviço é gratuito?",faq_free_desc:"Absolutamente! O YT Thumb Grabber é totalmente gratuito, sem taxas ocultas ou níveis premium.",faq_store_title:"Vocês armazenam as miniaturas que eu baixo?",faq_store_desc:"Não, não armazenamos nenhuma das suas miniaturas baixadas. Todo o processamento acontece no seu navegador.",faq_mobile_title:"Posso usar isso em dispositivos móveis?",faq_mobile_desc:"Sim, nosso site é totalmente responsivo e funciona perfeitamente em smartphones, tablets e computadores desktop.",about_title:"Sobre o YT Thumb Grabber",about_desc:"A maneira mais fácil de baixar miniaturas do YouTube em alta qualidade, incluindo o download em massa de várias miniaturas em um único arquivo ZIP.",share_title:"Compartilhar",quick_links_title:"Links Rápidos",quick_link_home:"Início",quick_link_features:"Recursos",quick_link_faq:"FAQ",quick_link_privacy:"Política de Privacidade",quick_link_terms:"Termos de Serviço",support_title:"Suporte",support_contact:"Contate-nos",support_report:"Relatar Problema",support_feedback:"Feedback",footer_copyright:"© 2023 YT Thumb Grabber. Todos os direitos reservados.",reaction_title:"Como foi sua experiência?"},fr:{header_title:"YT Thumb Grabber",header_subtitle:"Téléchargez instantanément des miniatures YouTube de haute qualité",download_title:"Télécharger des miniatures YouTube",urls_placeholder:"Collez les URL YouTube ici (une par ligne pour le téléchargement en masse)",get_thumbnails:"Obtenir les miniatures",bulk_note:"(Vous pouvez coller plusieurs liens YouTube pour télécharger des miniatures en masse.)",features_title:"Fonctionnalités prises en charge",feature_4k_title:"Qualité 4K",feature_4k_desc:"Téléchargez des miniatures en résolution maximale 4K (3840x2160)",feature_instant_title:"Téléchargement instantané",feature_instant_desc:"Téléchargement en un clic sans temps d'attente",feature_bulk_title:"Téléchargement en masse",feature_bulk_desc:"Téléchargez plusieurs miniatures dans un seul fichier ZIP",feature_multilang_title:"Multilingue",feature_multilang_desc:"Prend en charge 12 langues internationales",feature_mobile_title:"Compatible mobile",feature_mobile_desc:"Fonctionne parfaitement sur tous les appareils",feature_privacy_title:"Axé sur la confidentialité",feature_privacy_desc:"Aucune collecte de données, aucun enregistrement requis",faq_title:"Questions fréquemment posées",faq_download_title:"Comment télécharger des miniatures YouTube ?",faq_download_desc:"Collez simplement la(les) URL de vidéo YouTube dans le champ ci-dessus et cliquez sur 'Obtenir les miniatures'. Ensuite, sélectionnez la qualité préférée et cliquez sur le bouton de téléchargement. Pour plusieurs URL, cliquez sur un bouton de qualité pour télécharger toutes les miniatures sous forme de fichier ZIP.",faq_qualities_title:"Quelles qualités de miniature sont disponibles ?",faq_qualities_desc:"Nous prenons en charge plusieurs résolutions, y compris 4K (3840x2160), 1080p (1920x1080), 720p (1280x720) et 480p (854x480).",faq_bulk_title:"Comment fonctionne le téléchargement en masse ?",faq_bulk_desc:"Entrez plusieurs URL YouTube (une par ligne) dans le champ de saisie, cliquez sur 'Obtenir les miniatures', sélectionnez une qualité dans le menu déroulant, et cliquez sur le bouton de téléchargement pour cette qualité pour télécharger toutes les miniatures dans un seul fichier ZIP.",faq_free_title:"Ce service est-il gratuit ?",faq_free_desc:"Absolument ! YT Thumb Grabber est entièrement gratuit, sans frais cachés ni niveaux premium.",faq_store_title:"Stockez-vous mes miniatures téléchargées ?",faq_store_desc:"Non, nous ne stockons aucune de vos miniatures téléchargées. Tout le traitement se fait dans votre navigateur.",faq_mobile_title:"Puis-je utiliser ceci sur des appareils mobiles ?",faq_mobile_desc:"Oui, notre site web est entièrement responsive et fonctionne parfaitement sur les smartphones, tablettes et ordinateurs de bureau.",about_title:"À propos de YT Thumb Grabber",about_desc:"Le moyen le plus simple de télécharger des miniatures YouTube en haute qualité, y compris le téléchargement en masse de plusieurs miniatures dans un seul fichier ZIP.",share_title:"Partager",quick_links_title:"Liens rapides",quick_link_home:"Accueil",quick_link_features:"Fonctionnalités",quick_link_faq:"FAQ",quick_link_privacy:"Politique de confidentialité",quick_link_terms:"Conditions de service",support_title:"Support",support_contact:"Contactez-nous",support_report:"Signaler un problème",support_feedback:"Commentaires",footer_copyright:"© 2023 YT Thumb Grabber. Tous droits réservés.",reaction_title:"Comment était votre expérience ?"},de:{header_title:"YT Thumb Grabber",header_subtitle:"Laden Sie hochwertige YouTube-Thumbnails sofort herunter",download_title:"YouTube-Thumbnails herunterladen",urls_placeholder:"Fügen Sie YouTube-URLs hier ein (eine pro Zeile für Massen-Download)",get_thumbnails:"Thumbnails abrufen",bulk_note:"(Sie können mehrere YouTube-Links einfügen, um Thumbnails in großen Mengen herunterzuladen.)",features_title:"Unterstützte Funktionen",feature_4k_title:"4K-Qualität",feature_4k_desc:"Laden Sie Thumbnails in maximaler 4K-Auflösung (3840x2160) herunter",feature_instant_title:"Sofortiger Download",feature_instant_desc:"Download mit einem Klick ohne Wartezeit",feature_bulk_title:"Massen-Download",feature_bulk_desc:"Laden Sie mehrere Thumbnails in einer einzigen ZIP-Datei herunter",feature_multilang_title:"Mehrsprachig",feature_multilang_desc:"Unterstützt 12 internationale Sprachen",feature_mobile_title:"Mobilfreundlich",feature_mobile_desc:"Funktioniert perfekt auf allen Geräten",feature_privacy_title:"Datenschutzorientiert",feature_privacy_desc:"Keine Datensammlung, keine Registrierung erforderlich",faq_title:"Häufig gestellte Fragen",faq_download_title:"Wie lade ich YouTube-Thumbnails herunter?",faq_download_desc:"Fügen Sie einfach die YouTube-Video-URL(s) in das Eingabefeld oben ein und klicken Sie auf 'Thumbnails abrufen'. Wählen Sie dann die bevorzugte Qualität und klicken Sie auf den Download-Button. Für mehrere URLs klicken Sie auf einen Qualitätsbutton, um alle Thumbnails als ZIP-Datei herunterzuladen.",faq_qualities_title:"Welche Thumbnail-Qualitäten sind verfügbar?",faq_qualities_desc:"Wir unterstützen mehrere Auflösungen, einschließlich 4K (3840x2160), 1080p (1920x1080), 720p (1280x720) und 480p (854x480).",faq_bulk_title:"Wie funktioniert der Massen-Download?",faq_bulk_desc:"Geben Sie mehrere YouTube-URLs (eine pro Zeile) in das Eingabefeld ein, klicken Sie auf 'Thumbnails abrufen', wählen Sie eine Qualität aus dem Dropdown-Menü und klicken Sie auf den Download-Button für diese Qualität, um alle Thumbnails in einer einzigen ZIP-Datei herunterzuladen.",faq_free_title:"Ist dieser Dienst kostenlos?",faq_free_desc:"Absolut! YT Thumb Grabber ist völlig kostenlos ohne versteckte Gebühren oder Premium-Stufen.",faq_store_title:"Speichern Sie meine heruntergeladenen Thumbnails?",faq_store_desc:"Nein, wir speichern keine Ihrer heruntergeladenen Thumbnails. Die gesamte Verarbeitung erfolgt in Ihrem Browser.",faq_mobile_title:"Kann ich dies auf Mobilgeräten verwenden?",faq_mobile_desc:"Ja, unsere Website ist vollständig responsiv und funktioniert perfekt auf Smartphones, Tablets und Desktop-Computern.",about_title:"Über YT Thumb Grabber",about_desc:"Der einfachste Weg, YouTube-Thumbnails in hoher Qualität herunterzuladen, einschließlich des Massen-Downloads mehrerer Thumbnails in einer einzigen ZIP-Datei.",share_title:"Teilen",quick_links_title:"Schnelllinks",quick_link_home:"Startseite",quick_link_features:"Funktionen",quick_link_faq:"FAQ",quick_link_privacy:"Datenschutzrichtlinie",quick_link_terms:"Nutzungsbedingungen",support_title:"Support",support_contact:"Kontaktieren Sie uns",support_report:"Problem melden",support_feedback:"Feedback",footer_copyright:"© 2023 YT Thumb Grabber. Alle Rechte vorbehalten.",reaction_title:"Wie war Ihre Erfahrung?"},ru:{header_title:"YT Thumb Grabber",header_subtitle:"Мгновенно скачивайте высококачественные миниатюры YouTube",download_title:"Скачать миниатюры YouTube",urls_placeholder:"Вставьте URL-адреса YouTube сюда (по одному в строке для массовой загрузки)",get_thumbnails:"Получить миниатюры",bulk_note:"(Вы можете вставить несколько ссылок YouTube для массовой загрузки миниатюр.)",features_title:"Поддерживаемые функции",feature_4k_title:"Качество 4K",feature_4k_desc:"Скачивайте миниатюры в максимальном разрешении 4K (3840x2160)",feature_instant_title:"Мгновенная загрузка",feature_instant_desc:"Скачивание одним кликом без ожидания",feature_bulk_title:"Массовая загрузка",feature_bulk_desc:"Скачивайте несколько миниатюр в одном ZIP-файле",feature_multilang_title:"Многоязычность",feature_multilang_desc:"Поддерживает 12 международных языков",feature_mobile_title:"Поддержка мобильных устройств",feature_mobile_desc:"Идеально работает на всех устройствах",feature_privacy_title:"Ориентированность на конфиденциальность",feature_privacy_desc:"Без сбора данных, без регистрации",faq_title:"Часто задаваемые вопросы",faq_download_title:"Как скачать миниатюры YouTube?",faq_download_desc:"Просто вставьте URL-адрес(а) видео YouTube в поле ввода выше и нажмите 'Получить миниатюры'. Затем выберите предпочтительное качество и нажмите кнопку загрузки. Для нескольких URL нажмите кнопку качества, чтобы скачать все миниатюры в виде ZIP-файла.",faq_qualities_title:"Какие качества миниатюр доступны?",faq_qualities_desc:"Мы поддерживаем несколько разрешений, включая 4K (3840x2160), 1080p (1920x1080), 720p (1280x720) и 480p (854x480).",faq_bulk_title:"Как работает массовая загрузка?",faq_bulk_desc:"Введите несколько URL-адресов YouTube (по одному в строке) в поле ввода, нажмите 'Получить миниатюры', выберите качество из выпадающего меню и нажмите кнопку загрузки для этого качества, чтобы скачать все миниатюры в одном ZIP-файле.",faq_free_title:"Этот сервис бесплатный?",faq_free_desc:"Абсолютно! YT Thumb Grabber полностью бесплатен, без скрытых платежей или премиум-уровней.",faq_store_title:"Храните ли вы мои загруженные миниатюры?",faq_store_desc:"Нет, мы не храним ваши загруженные миниатюры. Вся обработка происходит в вашем браузере.",faq_mobile_title:"Могу ли я использовать это на мобильных устройствах?",faq_mobile_desc:"Да, наш сайт полностью адаптивен и идеально работает на смартфонах, планшетах и настольных компьютерах.",about_title:"О YT Thumb Grabber",about_desc:"Самый простой способ скачать миниатюры YouTube в высоком качестве, включая массовую загрузку нескольких миниатюр в одном ZIP-файле.",share_title:"Поделиться",quick_links_title:"Быстрые ссылки",quick_link_home:"Главная",quick_link_features:"Функции",quick_link_faq:"ЧаВО",quick_link_privacy:"Политика конфиденциальности",quick_link_terms:"Условия использования",support_title:"Поддержка",support_contact:"Связаться с нами",support_report:"Сообщить о проблеме",support_feedback:"Обратная связь",footer_copyright:"© 2023 YT Thumb Grabber. Все права защищены.",reaction_title:"Каковы ваши впечатления?"},zh:{header_title:"YT Thumb Grabber",header_subtitle:"即时下载高质量 YouTube 缩略图",download_title:"下载 YouTube 缩略图",urls_placeholder:"在此粘贴 YouTube 网址（每行一个，用于批量下载）",get_thumbnails:"获取缩略图",bulk_note:"(您可以粘贴多个 YouTube 链接以批量下载缩略图。)",features_title:"支持的功能",feature_4k_title:"4K 质量",feature_4k_desc:"以最大 4K 分辨率（3840x2160）下载缩略图",feature_instant_title:"即时下载",feature_instant_desc:"一键下载，无需等待",feature_bulk_title:"批量下载",feature_bulk_desc:"将多个缩略图下载到一个 ZIP 文件中",feature_multilang_title:"多语言",feature_multilang_desc:"支持 12 种国际语言",feature_mobile_title:"移动友好",feature_mobile_desc:"在所有设备上完美运行",feature_privacy_title:"注重隐私",feature_privacy_desc:"无数据收集，无需注册",faq_title:"常见问题",faq_download_title:"如何下载 YouTube 缩略图？",faq_download_desc:"只需在上方输入字段中粘贴 YouTube 视频 URL，然后点击“获取缩略图”。然后选择您喜欢的质量并点击下载按钮。对于多个 URL，点击质量按钮以 ZIP 文件形式下载所有缩略图。",faq_qualities_title:"有哪些缩略图质量可用？",faq_qualities_desc:"我们支持多种分辨率，包括 4K（3840x2160）、1080p（1920x1080）、720p（1280x720）和 480p（854x480）。",faq_bulk_title:"批量下载如何工作？",faq_bulk_desc:"在输入字段中输入多个 YouTube URL（每行一个），点击“获取缩略图”，从下拉菜单中选择质量，然后点击该质量的下载按钮，以将所有缩略图下载到一个 ZIP 文件中。",faq_free_title:"这项服务是免费的吗？",faq_free_desc:"当然！YT Thumb Grabber 完全免费，没有隐藏费用或高级套餐。",faq_store_title:"你们会存储我下载的缩略图吗？",faq_store_desc:"不会，我们不会存储您下载的任何缩略图。所有处理都在您的浏览器中进行。",faq_mobile_title:"我可以在移动设备上使用吗？",faq_mobile_desc:"是的，我们的网站完全响应式，在智能手机、平板电脑和台式电脑上都能完美运行。",about_title:"关于 YT Thumb Grabber",about_desc:"以高质量下载 YouTube 缩略图的最简单方法，包括将多个缩略图批量下载到一个 ZIP 文件中。",share_title:"分享",quick_links_title:"快速链接",quick_link_home:"首页",quick_link_features:"功能",quick_link_faq:"常见问题",quick_link_privacy:"隐私政策",quick_link_terms:"服务条款",support_title:"支持",support_contact:"联系我们",support_report:"报告问题",support_feedback:"反馈",footer_copyright:"© 2023 YT Thumb Grabber。保留所有权利。",reaction_title:"您的体验如何？"},bn:{header_title:"YT Thumb Grabber",header_subtitle:"উচ্চ মানের YouTube থাম্বনেইল তাৎক্ষণিকভাবে ডাউনলোড করুন",download_title:"YouTube থাম্বনেইল ডাউনলোড করুন",urls_placeholder:"এখানে YouTube URL পেস্ট করুন (বাল্ক ডাউনলোডের জন্য প্রতি লাইনে একটি)",get_thumbnails:"থাম্বনেইল পান",bulk_note:"(আপনি বাল্ক থাম্বনেইল ডাউনলোড করতে একাধিক YouTube লিঙ্ক পেস্ট করতে পারেন।)",features_title:"সমর্থিত বৈশিষ্ট্য",feature_4k_title:"4K গুণমান",feature_4k_desc:"সর্বোচ্চ 4K রেজোলিউশনে থাম্বনেইল ডাউনলোড করুন (3840x2160)",feature_instant_title:"তাৎক্ষণিক ডাউনলোড",feature_instant_desc:"কোনো অপেক্ষার সময় ছাড়াই এক-ক্লিক ডাউনলোড",feature_bulk_title:"বাল্ক ডাউনলোড",feature_bulk_desc:"একটি একক ZIP ফাইলে একাধিক থাম্বনেইল ডাউনলোড করুন",feature_multilang_title:"বহুভাষিক",feature_multilang_desc:"12টি আন্তর্জাতিক ভাষা সমর্থন করে",feature_mobile_title:"মোবাইল ফ্রেন্ডলি",feature_mobile_desc:"সব ডিভাইসে নিখুঁতভাবে কাজ করে",feature_privacy_title:"গোপনীয়তা কেন্দ্রিক",feature_privacy_desc:"কোনো ডেটা সংগ্রহ নেই, কোনো নিবন্ধন প্রয়োজন নেই",faq_title:"প্রায়শই জিজ্ঞাসিত প্রশ্ন",faq_download_title:"আমি কীভাবে YouTube থাম্বনেইল ডাউনলোড করব?",faq_download_desc:"শুধু উপরের ইনপুট ফিল্ডে YouTube ভিডিও URL(গুলি) পেস্ট করুন এবং 'থাম্বনেইল পান' ক্লিক করুন। তারপর আপনার পছন্দের গুণমান নির্বাচন করুন এবং ডাউনলোড বোতামে ক্লিক করুন। একাধিক URL-এর জন্য, একটি গুণমান বোতামে ক্লিক করুন যাতে সব থাম্বনেইল একটি ZIP ফাইল হিসেবে ডাউনলোড হয়।",faq_qualities_title:"কোন থাম্বনেইল গুণমান উপলব্ধ?",faq_qualities_desc:"আমরা একাধিক রেজোলিউশন সমর্থন করি, যার মধ্যে রয়েছে 4K (3840x2160), 1080p (1920x1080), 720p (1280x720), এবং 480p (854x480)।",faq_bulk_title:"বাল্ক ডাউনলোড কীভাবে কাজ করে?",faq_bulk_desc:"ইনপুট ফিল্ডে একাধিক YouTube URL (প্রতি লাইনে একটি) লিখুন, 'থাম্বনেইল পান' ক্লিক করুন, ড্রপডাউন থেকে একটি গুণমান নির্বাচন করুন, এবং সেই গুণমানের জন্য ডাউনলোড বোতামে ক্লিক করুন যাতে সব থাম্বনেইল একটি একক ZIP ফাইলে ডাউনলোড হয়।",faq_free_title:"এই পরিষেবাটি কি বিনামূল্যে ব্যবহার করা যায়?",faq_free_desc:"অবশ্যই! YT Thumb Grabber সম্পূর্ণ বিনামূল্যে, কোনো লুকানো চার্জ বা প্রিমিয়াম স্তর ছাড়াই।",faq_store_title:"আপনি কি আমার ডাউনলোড করা থাম্বনেইল সংরক্ষণ করেন?",faq_store_desc:"না, আমরা আপনার ডাউনলোড করা কোনো থাম্বনেইল সংরক্ষণ করি না। সমস্ত প্রক্রিয়াকরণ আপনার ব্রাউজারে ঘটে।",faq_mobile_title:"আমি কি মোবাইল ডিভাইসে এটি ব্যবহার করতে পারি?",faq_mobile_desc:"হ্যাঁ, আমাদের ওয়েবসাইট সম্পূর্ণরূপে প্রতিক্রিয়াশীল এবং স্মার্টফোন, ট্যাবলেট এবং ডেস্কটপ কম্পিউটারে নিখুঁতভাবে কাজ করে।",about_title:"YT Thumb Grabber সম্পর্কে",about_desc:"উচ্চ মানের YouTube থাম্বনেইল ডাউনলোড করার সবচেয়ে সহজ উপায়, যার মধ্যে একটি একক ZIP ফাইলে একাধিক থাম্বনেইলের বাল্ক ডাউনলোডও রয়েছে।",share_title:"শেয়ার করুন",quick_links_title:"দ্রুত লিঙ্ক",quick_link_home:"হোম",quick_link_features:"বৈশিষ্ট্য",quick_link_faq:"প্রায়শই জিজ্ঞাসিত প্রশ্ন",quick_link_privacy:"গোপনীয়তা নীতি",quick_link_terms:"পরিষেবার শর্তাবলী",support_title:"সমর্থন",support_contact:"যোগাযোগ করুন",support_report:"সমস্যা রিপোর্ট করুন",support_feedback:"প্রতিক্রিয়া",footer_copyright:"© 2023 YT Thumb Grabber। সর্বস্বত্ব সংরক্ষিত।",reaction_title:"আপনার অভিজ্ঞতা কেমন ছিল?"}};function changeLanguage(lang){document.querySelectorAll('[data-i18n]').forEach(element=>{const key=element.getAttribute('data-i18n');if(translations[lang][key]){element.textContent=translations[lang][key];}});document.querySelectorAll('[data-i18n-placeholder]').forEach(element=>{const key=element.getAttribute('data-i18n-placeholder');if(translations[lang][key]){element.placeholder=translations[lang][key];}});document.documentElement.lang=lang;}document.getElementById('language-selector').addEventListener('change',event=>{changeLanguage(event.target.value);});changeLanguage('en');document.getElementById('get-thumbnails').addEventListener('click',()=>{const urls=document.getElementById('youtube-urls').value.split('\n').filter(url=>url.trim());const previews=document.getElementById('thumbnail-previews');previews.innerHTML='';const videoIds=[];urls.forEach(url=>{const videoId=url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/)?.[1];if(videoId){videoIds.push(videoId);const qualities=[{name:'4K',res:'maxresdefault',width:3840,height:2160},{name:'1080p',res:'hqdefault',width:1920,height:1080},{name:'720p',res:'mqdefault',width:1280,height:720},{name:'480p',res:'sddefault',width:854,height:480}];qualities.forEach(quality=>{const div=document.createElement('div');div.className='thumbnail-preview text-center';const img=document.createElement('img');img.src=`https://img.youtube.com/vi/${videoId}/${quality.res}.jpg`;img.alt=`Thumbnail ${quality.name}`;img.className='w-full rounded shadow mb-2';img.loading='lazy';const downloadBtn=document.createElement('button');downloadBtn.className='download-button bg-green-600 text-white p-2 rounded inline-block';downloadBtn.textContent=`Download ${quality.name}`;downloadBtn.addEventListener('click',async()=>{if(videoIds.length===1){const link=document.createElement('a');link.href=img.src;link.download=`thumbnail_${videoId}_${quality.name}.jpg`;link.click();}else{const zip=new JSZip();for(const id of videoIds){try{const response=await fetch(`https://img.youtube.com/vi/${id}/${quality.res}.jpg`);if(response.ok){const blob=await response.blob();zip.file(`thumbnail_${id}_${quality.name}.jpg`,blob);}}catch(error){alert(`Error fetching thumbnail for video ID: ${id}`);}}if(Object.keys(zip.files).length>0){zip.generateAsync({type:'blob'}).then(blob=>{saveAs(blob,`youtube_thumbnails_${quality.name}.zip`);});}}});div.appendChild(img);div.appendChild(downloadBtn);previews.appendChild(div);});}else{alert(`Invalid YouTube URL: ${url}`);}});});let reactions={like:0,love:0,wow:0,sad:0};document.querySelectorAll('.reaction-button').forEach(button=>{button.addEventListener('click',()=>{const reaction=button.getAttribute('data-reaction');reactions[reaction]++;document.getElementById(`${reaction}-count`).textContent=reactions[reaction];});});
     </script>
 </body>
 </html>
